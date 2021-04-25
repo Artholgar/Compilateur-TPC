@@ -1,0 +1,12 @@
+
+int 0r1, r2;
+
+int max;
+struct mystruct {
+    int max;
+    int min;
+}
+
+int main(void) {
+   return 0;
+}

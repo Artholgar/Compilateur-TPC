@@ -1,0 +1,7 @@
+
+int main(void) {
+   int b, c;
+   b=-1;
+   struct mystruct str1, str2;
+   return 0;
+}

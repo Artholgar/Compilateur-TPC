@@ -1,0 +1,20 @@
+/* #include <stdio.h>
+   #include <math.h> */
+/* int trinome(float a, float b, float c) ;
+    double valeur(double a, double b, double c, double x) ; */
+/* Résolution d'une équation du deuxième degré */
+
+int r1, r2;
+
+int max;
+struct mystruct {
+    int max;
+    int min;
+    int valeur(int a, int b, int c, int x) {
+        return a*x*x+b*x+c;
+    }
+}
+
+int main(void) {
+   return 0;
+}
