@@ -84,12 +84,13 @@ int yyparse();
 int yylex();
 int yyerror(const char *s);
 Node* abs_tree;
+int warn = 0;
 extern char line[200];
 extern int yylineno;
 extern int column;
 extern char* yytext;
 
-#line 93 "./obj/tpc-2020-2021.tab.c"
+#line 94 "./obj/tpc-2020-2021.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -554,13 +555,13 @@ static const yytype_int8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,    48,    48,    56,    61,    67,    70,    73,    79,    84,
-      91,    95,   100,   104,   109,   116,   121,   128,   132,   138,
-     143,   148,   155,   160,   165,   169,   174,   179,   183,   187,
-     191,   196,   203,   208,   211,   215,   218,   221,   225,   230,
-     234,   239,   243,   248,   252,   257,   261,   266,   270,   275,
-     279,   283,   287,   290,   293,   296,   299,   305,   308,   315,
-     318,   323,   328
+       0,    49,    49,    57,    62,    68,    71,    74,    80,    85,
+      92,    96,   101,   105,   110,   117,   122,   129,   133,   139,
+     144,   149,   156,   161,   166,   170,   175,   180,   184,   188,
+     192,   197,   204,   209,   212,   216,   219,   222,   226,   231,
+     235,   240,   244,   249,   253,   258,   262,   267,   271,   276,
+     280,   284,   288,   291,   294,   297,   300,   306,   309,   316,
+     319,   324,   329
 };
 #endif
 
@@ -1226,275 +1227,275 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* Prog: TypesVars DeclFoncts  */
-#line 48 "src/tpc-2020-2021.y"
+#line 49 "src/tpc-2020-2021.y"
                                                     {   (yyval.tree) = makeNode(Prog);
                                                         addChild((yyval.tree), (yyvsp[-1].tree));
                                                         addChild((yyval.tree), (yyvsp[0].tree));
-                                                        make_Symbole_table((yyval.tree));
+                                                        warn = make_Symbole_table((yyval.tree));
                                                         abs_tree = (yyval.tree);
                                                     }
-#line 1237 "./obj/tpc-2020-2021.tab.c"
+#line 1238 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 3: /* TypesVars: TypesVars Type Declarateurs ';'  */
-#line 56 "src/tpc-2020-2021.y"
+#line 57 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[-3].tree); 
                                                         addChild((yyval.tree), (yyvsp[-2].tree));
                                                         addChild((yyvsp[-2].tree), (yyvsp[-1].tree));
                                                     }
-#line 1247 "./obj/tpc-2020-2021.tab.c"
+#line 1248 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 4: /* TypesVars: TypesVars STRUCT IDENT '{' DeclChamps '}'  */
-#line 61 "src/tpc-2020-2021.y"
+#line 62 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[-5].tree);
                                                         addChild((yyval.tree), (yyvsp[-4].tree));
                                                         strcpy((yyvsp[-4].tree)->u.identifier, (yyvsp[-3].tree)->u.identifier);
                                                         addChild((yyvsp[-4].tree), (yyvsp[-1].tree));
                                                     }
-#line 1258 "./obj/tpc-2020-2021.tab.c"
+#line 1259 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 5: /* TypesVars: %empty  */
-#line 67 "src/tpc-2020-2021.y"
+#line 68 "src/tpc-2020-2021.y"
                                                     { (yyval.tree) = makeNode(TypesVars); }
-#line 1264 "./obj/tpc-2020-2021.tab.c"
+#line 1265 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 6: /* Type: TYPE  */
-#line 70 "src/tpc-2020-2021.y"
+#line 71 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[0].tree);
                                                     }
-#line 1272 "./obj/tpc-2020-2021.tab.c"
+#line 1273 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 7: /* Type: STRUCT IDENT  */
-#line 73 "src/tpc-2020-2021.y"
+#line 74 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[-1].tree); 
                                                         strcpy((yyvsp[-1].tree)->u.identifier, (yyvsp[0].tree)->u.identifier);
                                                     }
-#line 1281 "./obj/tpc-2020-2021.tab.c"
+#line 1282 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 8: /* DeclChamps: DeclChamps TYPE Declarateurs ';'  */
-#line 79 "src/tpc-2020-2021.y"
+#line 80 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[-3].tree); 
                                                         addChild((yyval.tree), (yyvsp[-2].tree));
                                                         addChild((yyvsp[-2].tree), (yyvsp[-1].tree));  
                                                     }
-#line 1291 "./obj/tpc-2020-2021.tab.c"
+#line 1292 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 9: /* DeclChamps: TYPE Declarateurs ';'  */
-#line 84 "src/tpc-2020-2021.y"
+#line 85 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = makeNode(DeclChamps); 
                                                         addChild((yyval.tree), (yyvsp[-2].tree)); 
                                                         addChild((yyvsp[-2].tree), (yyvsp[-1].tree));
                                                     }
-#line 1301 "./obj/tpc-2020-2021.tab.c"
+#line 1302 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 10: /* Declarateurs: Declarateurs ',' IDENT  */
-#line 91 "src/tpc-2020-2021.y"
+#line 92 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[-2].tree); 
                                                         addSibling((yyval.tree), (yyvsp[0].tree));  
                                                     }
-#line 1310 "./obj/tpc-2020-2021.tab.c"
+#line 1311 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 11: /* Declarateurs: IDENT  */
-#line 95 "src/tpc-2020-2021.y"
+#line 96 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[0].tree);  
                                                     }
-#line 1318 "./obj/tpc-2020-2021.tab.c"
+#line 1319 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 12: /* DeclFoncts: DeclFoncts DeclFonct  */
-#line 100 "src/tpc-2020-2021.y"
+#line 101 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[-1].tree);  
                                                         addSibling((yyval.tree), (yyvsp[0].tree)); 
                                                     }
-#line 1327 "./obj/tpc-2020-2021.tab.c"
+#line 1328 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 13: /* DeclFoncts: DeclFonct  */
-#line 104 "src/tpc-2020-2021.y"
+#line 105 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[0].tree);  
                                                     }
-#line 1335 "./obj/tpc-2020-2021.tab.c"
+#line 1336 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 14: /* DeclFonct: EnTeteFonct Corps  */
-#line 109 "src/tpc-2020-2021.y"
+#line 110 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = makeNode(DeclFonct); 
                                                         addChild((yyval.tree), (yyvsp[-1].tree));  
                                                         addChild((yyval.tree), (yyvsp[0].tree)); 
                                                     }
-#line 1345 "./obj/tpc-2020-2021.tab.c"
+#line 1346 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 15: /* EnTeteFonct: Type IDENT '(' Parametres ')'  */
-#line 116 "src/tpc-2020-2021.y"
+#line 117 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[-4].tree);  
                                                         addChild((yyval.tree), (yyvsp[-3].tree)); 
                                                         addChild((yyval.tree), (yyvsp[-1].tree)); 
                                                     }
-#line 1355 "./obj/tpc-2020-2021.tab.c"
+#line 1356 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 16: /* EnTeteFonct: VOID IDENT '(' Parametres ')'  */
-#line 121 "src/tpc-2020-2021.y"
+#line 122 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[-4].tree);  
                                                         addChild((yyval.tree), (yyvsp[-3].tree)); 
                                                         addChild((yyval.tree), (yyvsp[-1].tree)); 
                                                     }
-#line 1365 "./obj/tpc-2020-2021.tab.c"
+#line 1366 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 17: /* Parametres: VOID  */
-#line 128 "src/tpc-2020-2021.y"
+#line 129 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = makeNode(Parametres);
                                                         addChild((yyval.tree), (yyvsp[0].tree));  
                                                     }
-#line 1374 "./obj/tpc-2020-2021.tab.c"
+#line 1375 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 18: /* Parametres: ListTypVar  */
-#line 132 "src/tpc-2020-2021.y"
+#line 133 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = makeNode(Parametres);
                                                         addChild((yyval.tree), (yyvsp[0].tree));  
                                                     }
-#line 1383 "./obj/tpc-2020-2021.tab.c"
+#line 1384 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 19: /* ListTypVar: ListTypVar ',' Type IDENT  */
-#line 138 "src/tpc-2020-2021.y"
+#line 139 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[-3].tree);  
                                                         addSibling((yyval.tree), (yyvsp[-1].tree));  
                                                         addChild((yyvsp[-1].tree), (yyvsp[0].tree));  
                                                     }
-#line 1393 "./obj/tpc-2020-2021.tab.c"
+#line 1394 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 20: /* ListTypVar: Type IDENT  */
-#line 143 "src/tpc-2020-2021.y"
+#line 144 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[-1].tree);  
                                                         addChild((yyvsp[-1].tree), (yyvsp[0].tree));    
                                                     }
-#line 1402 "./obj/tpc-2020-2021.tab.c"
+#line 1403 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 21: /* Corps: '{' DeclVars SuiteInstr '}'  */
-#line 148 "src/tpc-2020-2021.y"
+#line 149 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = makeNode(Corps); 
                                                         addChild((yyval.tree), (yyvsp[-2].tree));  
                                                         addChild((yyval.tree), (yyvsp[-1].tree));    
                                                     }
-#line 1412 "./obj/tpc-2020-2021.tab.c"
+#line 1413 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 22: /* DeclVars: DeclVars Type Declarateurs ';'  */
-#line 155 "src/tpc-2020-2021.y"
+#line 156 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[-3].tree);
                                                         addChild((yyval.tree), (yyvsp[-2].tree));  
                                                         addChild((yyvsp[-2].tree), (yyvsp[-1].tree));    
                                                     }
-#line 1422 "./obj/tpc-2020-2021.tab.c"
+#line 1423 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 23: /* DeclVars: %empty  */
-#line 160 "src/tpc-2020-2021.y"
+#line 161 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = makeNode(DeclVars);    
                                                     }
-#line 1430 "./obj/tpc-2020-2021.tab.c"
+#line 1431 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 24: /* SuiteInstr: SuiteInstr Instr  */
-#line 165 "src/tpc-2020-2021.y"
+#line 166 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[-1].tree);
                                                         addChild((yyval.tree), (yyvsp[0].tree));   
                                                     }
-#line 1439 "./obj/tpc-2020-2021.tab.c"
+#line 1440 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 25: /* SuiteInstr: %empty  */
-#line 169 "src/tpc-2020-2021.y"
+#line 170 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = makeNode(SuiteInstr);    
                                                     }
-#line 1447 "./obj/tpc-2020-2021.tab.c"
+#line 1448 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 26: /* Instr: LValue '=' Exp ';'  */
-#line 174 "src/tpc-2020-2021.y"
+#line 175 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = makeNode(Asignment); 
                                                         addChild((yyval.tree), (yyvsp[-3].tree));
                                                         addChild((yyval.tree), (yyvsp[-1].tree));   
                                                     }
-#line 1457 "./obj/tpc-2020-2021.tab.c"
+#line 1458 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 27: /* Instr: READE '(' IDENT ')' ';'  */
-#line 179 "src/tpc-2020-2021.y"
+#line 180 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[-4].tree);
                                                         addChild((yyvsp[-4].tree), (yyvsp[-2].tree));   
                                                     }
-#line 1466 "./obj/tpc-2020-2021.tab.c"
+#line 1467 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 28: /* Instr: READC '(' IDENT ')' ';'  */
-#line 183 "src/tpc-2020-2021.y"
+#line 184 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[-4].tree);
                                                         addChild((yyvsp[-4].tree), (yyvsp[-2].tree));   
                                                     }
-#line 1475 "./obj/tpc-2020-2021.tab.c"
+#line 1476 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 29: /* Instr: PRINT '(' Exp ')' ';'  */
-#line 187 "src/tpc-2020-2021.y"
+#line 188 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[-4].tree);
                                                         addChild((yyvsp[-4].tree), (yyvsp[-2].tree));   
                                                     }
-#line 1484 "./obj/tpc-2020-2021.tab.c"
+#line 1485 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 30: /* Instr: IF '(' Exp ')' Instr  */
-#line 191 "src/tpc-2020-2021.y"
+#line 192 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[-4].tree);
                                                         addChild((yyvsp[-4].tree), (yyvsp[-2].tree));  
                                                         addChild((yyvsp[-4].tree), (yyvsp[0].tree)); 
                                                     }
-#line 1494 "./obj/tpc-2020-2021.tab.c"
+#line 1495 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 31: /* Instr: IF '(' Exp ')' Instr ELSE Instr  */
-#line 196 "src/tpc-2020-2021.y"
+#line 197 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[-6].tree);
                                                         addChild((yyvsp[-6].tree), (yyvsp[-4].tree));  
@@ -1502,281 +1503,281 @@ yyreduce:
                                                         addChild((yyvsp[-6].tree), (yyvsp[-1].tree));
                                                         addChild((yyvsp[-1].tree), (yyvsp[0].tree)); 
                                                     }
-#line 1506 "./obj/tpc-2020-2021.tab.c"
+#line 1507 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 32: /* Instr: WHILE '(' Exp ')' Instr  */
-#line 203 "src/tpc-2020-2021.y"
+#line 204 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[-4].tree);
                                                         addChild((yyvsp[-4].tree), (yyvsp[-2].tree));  
                                                         addChild((yyvsp[-4].tree), (yyvsp[0].tree)); 
                                                     }
-#line 1516 "./obj/tpc-2020-2021.tab.c"
+#line 1517 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 33: /* Instr: Exp ';'  */
-#line 208 "src/tpc-2020-2021.y"
+#line 209 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[-1].tree); 
                                                     }
-#line 1524 "./obj/tpc-2020-2021.tab.c"
+#line 1525 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 34: /* Instr: RETURN Exp ';'  */
-#line 211 "src/tpc-2020-2021.y"
+#line 212 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[-2].tree);
                                                         addChild((yyval.tree), (yyvsp[-1].tree));
                                                     }
-#line 1533 "./obj/tpc-2020-2021.tab.c"
+#line 1534 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 35: /* Instr: RETURN ';'  */
-#line 215 "src/tpc-2020-2021.y"
+#line 216 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[-1].tree);
                                                     }
-#line 1541 "./obj/tpc-2020-2021.tab.c"
+#line 1542 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 36: /* Instr: '{' SuiteInstr '}'  */
-#line 218 "src/tpc-2020-2021.y"
+#line 219 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[-1].tree);
                                                     }
-#line 1549 "./obj/tpc-2020-2021.tab.c"
+#line 1550 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 37: /* Instr: ';'  */
-#line 221 "src/tpc-2020-2021.y"
+#line 222 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = makeNode(Instr);
                                                     }
-#line 1557 "./obj/tpc-2020-2021.tab.c"
+#line 1558 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 38: /* Exp: Exp OR TB  */
-#line 225 "src/tpc-2020-2021.y"
+#line 226 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[-1].tree);
                                                         addChild((yyval.tree), (yyvsp[-2].tree));
                                                         addChild((yyval.tree), (yyvsp[0].tree));
                                                     }
-#line 1567 "./obj/tpc-2020-2021.tab.c"
+#line 1568 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 39: /* Exp: TB  */
-#line 230 "src/tpc-2020-2021.y"
+#line 231 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[0].tree);
                                                     }
-#line 1575 "./obj/tpc-2020-2021.tab.c"
+#line 1576 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 40: /* TB: TB AND FB  */
-#line 234 "src/tpc-2020-2021.y"
+#line 235 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[-1].tree);
                                                         addChild((yyval.tree), (yyvsp[-2].tree));
                                                         addChild((yyval.tree), (yyvsp[0].tree));
                                                     }
-#line 1585 "./obj/tpc-2020-2021.tab.c"
+#line 1586 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 41: /* TB: FB  */
-#line 239 "src/tpc-2020-2021.y"
+#line 240 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[0].tree);
                                                     }
-#line 1593 "./obj/tpc-2020-2021.tab.c"
+#line 1594 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 42: /* FB: FB EQ M  */
-#line 243 "src/tpc-2020-2021.y"
+#line 244 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[-1].tree);
                                                         addChild((yyval.tree), (yyvsp[-2].tree));
                                                         addChild((yyval.tree), (yyvsp[0].tree));
                                                     }
-#line 1603 "./obj/tpc-2020-2021.tab.c"
+#line 1604 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 43: /* FB: M  */
-#line 248 "src/tpc-2020-2021.y"
+#line 249 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[0].tree);
                                                     }
-#line 1611 "./obj/tpc-2020-2021.tab.c"
+#line 1612 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 44: /* M: M ORDER E  */
-#line 252 "src/tpc-2020-2021.y"
+#line 253 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[-1].tree);
                                                         addChild((yyval.tree), (yyvsp[-2].tree));
                                                         addChild((yyval.tree), (yyvsp[0].tree));
                                                     }
-#line 1621 "./obj/tpc-2020-2021.tab.c"
+#line 1622 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 45: /* M: E  */
-#line 257 "src/tpc-2020-2021.y"
+#line 258 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[0].tree);
                                                     }
-#line 1629 "./obj/tpc-2020-2021.tab.c"
+#line 1630 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 46: /* E: E ADDSUB T  */
-#line 261 "src/tpc-2020-2021.y"
+#line 262 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[-1].tree);
                                                         addChild((yyval.tree), (yyvsp[-2].tree));
                                                         addChild((yyval.tree), (yyvsp[0].tree));
                                                     }
-#line 1639 "./obj/tpc-2020-2021.tab.c"
+#line 1640 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 47: /* E: T  */
-#line 266 "src/tpc-2020-2021.y"
+#line 267 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[0].tree);
                                                     }
-#line 1647 "./obj/tpc-2020-2021.tab.c"
+#line 1648 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 48: /* T: T DIVSTAR F  */
-#line 270 "src/tpc-2020-2021.y"
+#line 271 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[-1].tree);
                                                         addChild((yyval.tree), (yyvsp[-2].tree));
                                                         addChild((yyval.tree), (yyvsp[0].tree));
                                                     }
-#line 1657 "./obj/tpc-2020-2021.tab.c"
+#line 1658 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 49: /* T: F  */
-#line 275 "src/tpc-2020-2021.y"
+#line 276 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[0].tree);
                                                     }
-#line 1665 "./obj/tpc-2020-2021.tab.c"
+#line 1666 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 50: /* F: ADDSUB F  */
-#line 279 "src/tpc-2020-2021.y"
+#line 280 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[-1].tree);
                                                         addChild((yyval.tree), (yyvsp[0].tree));
                                                     }
-#line 1674 "./obj/tpc-2020-2021.tab.c"
+#line 1675 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 51: /* F: '!' F  */
-#line 283 "src/tpc-2020-2021.y"
+#line 284 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = makeNode(Not);
                                                         addChild((yyval.tree), (yyvsp[0].tree));
                                                     }
-#line 1683 "./obj/tpc-2020-2021.tab.c"
+#line 1684 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 52: /* F: '(' Exp ')'  */
-#line 287 "src/tpc-2020-2021.y"
+#line 288 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[-1].tree);
                                                     }
-#line 1691 "./obj/tpc-2020-2021.tab.c"
+#line 1692 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 53: /* F: NUM  */
-#line 290 "src/tpc-2020-2021.y"
+#line 291 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[0].tree);
                                                     }
-#line 1699 "./obj/tpc-2020-2021.tab.c"
+#line 1700 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 54: /* F: CHARACTER  */
-#line 293 "src/tpc-2020-2021.y"
+#line 294 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[0].tree);
                                                     }
-#line 1707 "./obj/tpc-2020-2021.tab.c"
+#line 1708 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 55: /* F: LValue  */
-#line 296 "src/tpc-2020-2021.y"
+#line 297 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[0].tree);
                                                     }
-#line 1715 "./obj/tpc-2020-2021.tab.c"
+#line 1716 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 56: /* F: IDENT '(' Arguments ')'  */
-#line 299 "src/tpc-2020-2021.y"
+#line 300 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[-3].tree);
                                                         addChild((yyvsp[-3].tree), (yyvsp[-1].tree));
                                                     }
-#line 1724 "./obj/tpc-2020-2021.tab.c"
+#line 1725 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 57: /* LValue: IDENT  */
-#line 305 "src/tpc-2020-2021.y"
+#line 306 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[0].tree);
                                                     }
-#line 1732 "./obj/tpc-2020-2021.tab.c"
+#line 1733 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 58: /* LValue: IDENT '.' IDENT  */
-#line 308 "src/tpc-2020-2021.y"
+#line 309 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = makeNode(LValue);
                                                         addChild((yyval.tree), (yyvsp[-2].tree));
                                                         addChild((yyval.tree), (yyvsp[0].tree));
                                                     }
-#line 1742 "./obj/tpc-2020-2021.tab.c"
+#line 1743 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 59: /* Arguments: ListExp  */
-#line 315 "src/tpc-2020-2021.y"
+#line 316 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[0].tree);
                                                     }
-#line 1750 "./obj/tpc-2020-2021.tab.c"
+#line 1751 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 60: /* Arguments: %empty  */
-#line 318 "src/tpc-2020-2021.y"
+#line 319 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = makeNode(Arguments);
                                                     }
-#line 1758 "./obj/tpc-2020-2021.tab.c"
+#line 1759 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 61: /* ListExp: ListExp ',' Exp  */
-#line 323 "src/tpc-2020-2021.y"
+#line 324 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = makeNode(ListExp);
                                                         addChild((yyval.tree), (yyvsp[-2].tree));
                                                         addChild((yyval.tree), (yyvsp[0].tree));
                                                     }
-#line 1768 "./obj/tpc-2020-2021.tab.c"
+#line 1769 "./obj/tpc-2020-2021.tab.c"
     break;
 
   case 62: /* ListExp: Exp  */
-#line 328 "src/tpc-2020-2021.y"
+#line 329 "src/tpc-2020-2021.y"
                                                     {   
                                                         (yyval.tree) = (yyvsp[0].tree);
                                                     }
-#line 1776 "./obj/tpc-2020-2021.tab.c"
+#line 1777 "./obj/tpc-2020-2021.tab.c"
     break;
 
 
-#line 1780 "./obj/tpc-2020-2021.tab.c"
+#line 1781 "./obj/tpc-2020-2021.tab.c"
 
       default: break;
     }
@@ -1970,7 +1971,7 @@ yyreturn:
   return yyresult;
 }
 
-#line 332 "src/tpc-2020-2021.y"
+#line 333 "src/tpc-2020-2021.y"
 
 
 int yyerror(const char *s) {
@@ -1997,27 +1998,34 @@ int main(int argc, char *argv[]) {
     };
 
     while ((opt = getopt_long(argc, argv, "-t-s-h", longopts, &option_index)) != -1) {
-        nb_opt++;
+        
         switch (opt) {
             case 't':
                 tree_flag = 1;
-                //printf("%s\n", optarg);
+                nb_opt++;
                 break;
             case 's':
                 symb_flag = 1;
+                nb_opt++;
                 break;
             case '?':
-                fprintf(stderr, "Erreur : Option invalide\n");
+                exit(3);
             case 'h':
                 help_flag = 1;
+                nb_opt++;
                 break;
             default: 
                 break;
         }
     }
 
-    if (nb_opt <= argc) {
-        yyin = fopen(argv[nb_opt], "r");
+    if (nb_opt < argc - 2) {
+        fprintf(stderr, "Erreur : trop d'arguments\n");
+        exit(3);
+    }
+    
+    if (nb_opt <= argc - 2) {
+        yyin = fopen(argv[argc - 1], "r");
     }
 
     if (yyparse()) {
@@ -2048,5 +2056,9 @@ int main(int argc, char *argv[]) {
     }
 
     deleteTree(abs_tree);
+
+    if (warn) {
+        return 2;
+    }
     return 0;
 }

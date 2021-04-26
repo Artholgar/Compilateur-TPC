@@ -24,8 +24,34 @@ void Print_table(SymbolTable table) {
     }
 }
 
-void addVar(SymbolTable * table, const char name[], char *type) {
+int checkTable(SymbolTable * table, const char name[]) {
+    TableEntry * current;
+
+    if (NULL == table) {
+        return 0;
+    }
+    if (checkTable(table->parent, name)) {
+        return 1;
+    }
+    current = table->array;
+
+    while (current != NULL) {
+        if (strcmp(current->identifier, name) == 0) {
+            return 1;
+        }
+        current = current->next;
+    }
+    return 0;
+}
+
+int addVar(SymbolTable * table, const char name[], char *type) {
     TableEntry * new;
+    int res = 0;
+
+    if (checkTable(table, name)) {
+        fprintf(stderr, "Warning : redefinition de la variable %s\n", name);
+        res = 2;
+    }
 
     if (NULL == (new = (TableEntry *)malloc(sizeof(TableEntry)))) {
         perror("malloc");
@@ -34,19 +60,9 @@ void addVar(SymbolTable * table, const char name[], char *type) {
 
     new->next = table->array;
     table->array = new;
-    // int count;
-    // for (count = 0; count < table->stsize; count++) {
-    //     if (!strcmp(table->array[count].identifier, name)) {
-    //         printf("semantic error, redefinition of variable %s\n",
-    //                name);
-    //         return;
-    //     }
-    // }
-    // if (++(table->stsize) > MAXSYMBOLS) {
-    //     printf("too many variables\n");
-    //     exit(3);
-    // }
 
     strcpy(table->array->identifier, name);
     strcpy(table->array->type, type);
+
+    return res;
 }

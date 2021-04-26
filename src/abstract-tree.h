@@ -77,7 +77,7 @@ void addChild(Node *parent, Node *child);
 void deleteTree(Node *node);
 void printTree(Node *node);
 void printTables(Node *node);
-void make_Symbole_table(Node *node);
+int make_Symbole_table(Node *node);
 
 #define FIRSTCHILD(node) node->firstChild
 #define SECONDCHILD(node) node->firstChild->nextSibling

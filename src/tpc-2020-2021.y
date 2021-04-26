@@ -14,6 +14,7 @@ int yyparse();
 int yylex();
 int yyerror(const char *s);
 Node* abs_tree;
+int warn = 0;
 extern char line[200];
 extern int yylineno;
 extern int column;
@@ -48,7 +49,7 @@ extern char* yytext;
 Prog:  TypesVars DeclFoncts                         {   $$ = makeNode(Prog);
                                                         addChild($$, $1);
                                                         addChild($$, $2);
-                                                        make_Symbole_table($$);
+                                                        warn = make_Symbole_table($$);
                                                         abs_tree = $$;
                                                     }
     ;
@@ -355,27 +356,34 @@ int main(int argc, char *argv[]) {
     };
 
     while ((opt = getopt_long(argc, argv, "-t-s-h", longopts, &option_index)) != -1) {
-        nb_opt++;
+        
         switch (opt) {
             case 't':
                 tree_flag = 1;
-                //printf("%s\n", optarg);
+                nb_opt++;
                 break;
             case 's':
                 symb_flag = 1;
+                nb_opt++;
                 break;
             case '?':
-                fprintf(stderr, "Erreur : Option invalide\n");
+                exit(3);
             case 'h':
                 help_flag = 1;
+                nb_opt++;
                 break;
             default: 
                 break;
         }
     }
 
-    if (nb_opt <= argc) {
-        yyin = fopen(argv[nb_opt], "r");
+    if (nb_opt < argc - 2) {
+        fprintf(stderr, "Erreur : trop d'arguments\n");
+        exit(3);
+    }
+    
+    if (nb_opt <= argc - 2) {
+        yyin = fopen(argv[argc - 1], "r");
     }
 
     if (yyparse()) {
@@ -406,5 +414,9 @@ int main(int argc, char *argv[]) {
     }
 
     deleteTree(abs_tree);
+
+    if (warn) {
+        return 2;
+    }
     return 0;
 }
