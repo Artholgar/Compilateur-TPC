@@ -349,14 +349,13 @@ int main(int argc, char *argv[]) {
     int option_index = 0;
     int nb_opt = 0;
     struct option longopts[] = {
-        { "help", no_argument, &help_flag, 1 },
-        { "tree", no_argument, &tree_flag, 1 },
-        { "symtabs", no_argument, &symb_flag, 1 },
+        { "help", no_argument, NULL, 'h' },
+        { "tree", no_argument, NULL, 't' },
+        { "symtabs", no_argument, NULL, 's' },
         {0, 0, 0, 0 }
     };
 
     while ((opt = getopt_long(argc, argv, "-t-s-h", longopts, &option_index)) != -1) {
-        
         switch (opt) {
             case 't':
                 tree_flag = 1;
