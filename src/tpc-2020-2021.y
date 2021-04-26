@@ -374,7 +374,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if (nb_opt < argc) {
+    if (nb_opt <= argc) {
         yyin = fopen(argv[nb_opt], "r");
     }
 
