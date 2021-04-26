@@ -7,6 +7,7 @@
 #include "../src/decl-var.h"
 #include <string.h>
 #include <unistd.h>
+#include <getopt.h>
 #define YYERROR_VERBOSE 1
 int yyparse();
 int yylex();
@@ -329,12 +330,6 @@ ListExp:
     ;
 %%
 
-typedef struct option {
-    int opt_T;
-    int opt_S;
-    int opt_H;
-} Options;
-
 int yyerror(const char *s) {
     fprintf(stderr, "%s near line %d column %d\n", s, yylineno, column);
     fprintf(stderr, "%s\n", line);
@@ -345,51 +340,47 @@ int yyerror(const char *s) {
 }
 
 int main(int argc, char *argv[]) {
-    Options option;
+    int help_flag = 0;
     int opt;
-    int res = 0;
+    int option_index = 0;
+    struct option longopts[] = {
+        { "help", no_argument, &help_flag, 1 },
+        { "tree", no_argument, NULL, 't' },
+        { "symtabs", no_argument, NULL, 's' },
+        {0, 0, 0, 0 }
+    };
 
-    res = yyparse();
+    if (yyparse()) {
+        return 1;
+    }
 
-    option.opt_T = 0;
-    option.opt_S = 0;
-    option.opt_H = 0;
-
-    while ((opt = getopt(argc, argv, "-t-s-h")) != -1) {
+    while ((opt = getopt_long(argc, argv, "-t-s-h", longopts, &option_index)) != -1) {
         switch (opt) {
             case 't':
-                option.opt_T = 1; break;
+                printf("Tree\n");
+                /* Affiche tree */
+                printTree(abs_tree);
+                break;
             case 's':
-                option.opt_S = 1; break;
+                printf("Symbol\n");
+                /* Affiche symbol table */
+                printTables(abs_tree);
+                break;
+            case '?':
             case 'h':
-                option.opt_H = 1; break;
+                printf("./bin/tpcc [OPTIONS] < FILE.tpc\n");
+                printf("[OPTIONS] : \n");
+                printf("-t : affiche l'arbre abstrait sur la sortie standart.\n");
+                printf("-s : affiche toutes les tables des symboles sur la sortie standard.\n");
+                printf("-h : affiche une description de l’interface utilisateur et termine l’exécution.\n");
+                printf("FILE.tpc : le fichier .tpc sur lequel vous voulez tester.\n");
+                printf("./test.sh : Est un script bash permettant de lancer tout les tests du dossiers test.\n");
+                break;
             default: 
                 break;
         }
     }
-    if (res != 1 && res != 2) {
-        if (option.opt_T) {
-            printf("Tree\n");
-            /* Affiche tree */
-            printTree(abs_tree);
-        }
-        if (option.opt_S) {
-            printf("Symbol\n");
-            /* Affiche symbol table */
-            //printListTable();
-        }
-    }
-    
-    if (option.opt_H) {
-        printf("./bin/tpcc [OPTIONS] < FILE.tpc\n");
-        printf("[OPTIONS] : \n");
-        printf("-t : affiche l'arbre abstrait sur la sortie standart.\n");
-        printf("-s : affiche toutes les tables des symboles sur la sortie standard.\n");
-        printf("-h : affiche une description de l’interface utilisateur et termine l’exécution.\n");
-        printf("FILE.tpc : le fichier .tpc sur lequel vous voulez tester.\n");
-        printf("./Test.sh : Est un script bash permettant de lancer tout les tests du dossiers test.\n");
-    }
 
     deleteTree(abs_tree);
-    return res;
+    return 0;
 }

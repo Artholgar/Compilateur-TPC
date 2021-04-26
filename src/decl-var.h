@@ -8,10 +8,11 @@
 
 #define MAXNAME 32
 
-typedef struct {
+typedef struct entry{
     char identifier[MAXNAME];
     char type[MAXNAME];
     size_t offset;  // Offset in bytes.
+    struct entry *next;
 } TableEntry;
 
 typedef struct SymbolTable {
@@ -21,7 +22,7 @@ typedef struct SymbolTable {
     struct SymbolTable *parent;
 } SymbolTable;
 
-void initialisation_Table(SymbolTable *table);
+void initialisation_Table(SymbolTable *table, char* name, SymbolTable* parent);
 
 void Print_table(SymbolTable table);
 

@@ -14,10 +14,11 @@ static const char *StringFromKind[] = {
 };
 
 Node *makeNode(Kind kind) {
-    Node *node = malloc(sizeof(Node));
-    if (!node) {
-        printf("Run out of memory\n");
-        exit(1);
+    Node *node;
+
+    if (NULL == (node = (Node*)malloc(sizeof(Node)))) {
+        perror("malloc");
+        exit(3);
     }
     node->kind = kind;
     node->firstChild = node->nextSibling = NULL;
@@ -76,15 +77,6 @@ void printTree(Node *node) {
         case Identifier:
             printf(": %s", node->u.identifier);
             break;
-        case DeclFonct:
-        case Prog:
-            printf(": ");
-            if (NULL != node->u.symbol_tab.parent) {
-                printf("%s ", node->u.symbol_tab.parent->name);
-            }
-            printf("%s", node->u.symbol_tab.name);
-            Print_table(node->u.symbol_tab);
-            break;
         default:
             break;
     }
@@ -98,110 +90,24 @@ void printTree(Node *node) {
     depth--;
 }
 
-// void make_glob_table_aux(Node *node, SymbolTable *table) {
-//     char type[MAXNAME];
+void printTables(Node *node) {
+    if (NULL == node) {
+        return;
+    }
 
-//     if (NULL == node) {
-//         return;
-//     }
-
-//     switch (node->kind) {
-//         case Prog:
-//             initialisation_Table(table);
-//             strcpy(table->name, "Global");
-//             make_glob_table_aux(node->firstChild, table);
-//             make_glob_table_aux(node->firstChild->nextSibling, table);
-//             break;
-//         case TypesVars:
-//             make_glob_table_aux(node->firstChild, table);
-//             break;
-//         case Type:
-//             strcpy(type, node->u.identifier);
-//             for (Node *child = node->firstChild; child != NULL && (child->kind == Identifier);
-//                  child = child->nextSibling) {
-//                 addVar(*table, child->u.identifier, type);
-//             }
-//             make_glob_table_aux(node->nextSibling, table);
-//             break;
-//         case DeclFonct:
-//             make_glob_table_aux(node->firstChild, table);
-//             //make_glob_table_aux(node->nextSibling, table);
-//         case Struct:
-//             strcpy(type, node->u.identifier);
-//             if (node->firstChild->kind == DeclChamps) {
-//                 make_glob_table_aux(node->nextSibling, table);
-//                 break;
-//             }
-
-//             for (Node *child = node->firstChild; child != NULL && (child->kind == Identifier);
-//                  child = child->nextSibling) {
-//                 addVar(*table, child->u.identifier, type);
-//             }
-//             make_glob_table_aux(node->nextSibling, table);
-
-//         default:
-//             break;
-//     }
-// }
-
-// void make_glob_table(Node *node) {
-//     make_glob_table_aux(node, &node->u.symbol_tab);
-// }
-
-// void make_local_table_aux(Node *node, SymbolTable *table) {
-//     char type[MAXNAME];
-
-//     if (NULL == node) {
-//         return;
-//     }
-
-//     switch (node->kind) {
-//         case DeclFonct:
-//             initialisation_Table(table);
-//             strcpy(table->name, node->firstChild->firstChild->u.identifier);
-//             make_local_table_aux(node->firstChild->firstChild->nextSibling, table);
-//             make_local_table_aux(node->firstChild->nextSibling, table);
-//             break;
-//         case Parametres:
-//             make_local_table_aux(node->firstChild, table);
-//             break;
-//         case Corps:
-//             make_local_table_aux(node->firstChild, table);
-//             break;
-//         case Type:
-//             strcpy(type, node->u.identifier);
-//             for (Node *child = node->firstChild; child != NULL && child->kind == Identifier;
-//                  child = child->nextSibling) {
-//                 addVar(*table, child->u.identifier, type);
-//             }
-//             make_local_table_aux(node->nextSibling, table);
-//             break;
-//         case DeclVars:
-//             make_local_table_aux(node->firstChild, table);
-//         case Struct:
-//             strcpy(type, node->u.identifier);
-
-//             for (Node *child = node->firstChild; child != NULL && (child->kind == Identifier);
-//                  child = child->nextSibling) {
-//                 addVar(*table, child->u.identifier, type);
-//             }
-//             make_local_table_aux(node->nextSibling, table);
-//         default:
-//             break;
-//     }
-// }
-
-// void make_local_table(Node *node) {
-//     SymbolTable** tab_glob;
-
-//     for (Node *child = node->firstChild->nextSibling; child != NULL && child->kind == DeclFonct; child = child->nextSibling) {
-//         // Set the parent table
-//         tab_glob = &child->u.symbol_tab.parent;
-//         *tab_glob = &node->u.symbol_tab;
-//         // Make the table
-//         make_local_table_aux(child, &child->u.symbol_tab);
-//     }
-// }
+    switch (node->kind) {
+        case Prog:
+            Print_table(node->u.symbol_tab);
+            printTables(node->firstChild->nextSibling);
+            break;
+        case DeclFonct:
+            Print_table(node->u.symbol_tab);
+            printTables(node->nextSibling);
+            break;
+        default:
+            break;
+    }
+}
 
 void make_table_aux(Node *node, SymbolTable *table) {
     char type[MAXNAME];
@@ -212,8 +118,7 @@ void make_table_aux(Node *node, SymbolTable *table) {
 
     switch (node->kind) {
         case Prog:
-            initialisation_Table(table);
-            strcpy(table->name, "Global");
+            initialisation_Table(table, "Global", NULL);
             make_table_aux(node->firstChild, table);
             make_table_aux(node->firstChild->nextSibling, table);
             break;
@@ -231,7 +136,7 @@ void make_table_aux(Node *node, SymbolTable *table) {
             break;
         case DeclFonct:
             make_table_aux(node->firstChild, table);
-            initialisation_Table(&node->u.symbol_tab);
+            initialisation_Table(&node->u.symbol_tab, node->firstChild->firstChild->u.identifier, table);
             /*node->u.symbol_tab.parent = *table;*/
             strcpy(node->u.symbol_tab.name, node->firstChild->firstChild->u.identifier);
             make_table_aux(node->firstChild->firstChild->nextSibling, &node->u.symbol_tab);
