@@ -390,24 +390,23 @@ int main(int argc, char *argv[]) {
     }
 
     if (help_flag) {
-        printf("./bin/tpcc [OPTIONS] < FILE.tpc\n");
+        printf("./bin/tpcc [OPTIONS] FILE.tpc\n");
         printf("[OPTIONS] : \n");
-        printf("-t : affiche l'arbre abstrait sur la sortie standart.\n");
-        printf("-s : affiche toutes les tables des symboles sur la sortie standard.\n");
-        printf("-h : affiche une description de l’interface utilisateur et termine l’exécution.\n");
-        printf("FILE.tpc : le fichier .tpc sur lequel vous voulez tester.\n");
-        printf("./test.sh : Est un script bash permettant de lancer tout les tests du dossiers test.\n");
+        printf("-t : affiche l'arbre abstrait.\n");
+        printf("-s : affiche toutes les tables des symboles.\n");
+        printf("-h : affiche une aide.\n");
+        printf("FILE.tpc : le fichier a compiler.\n");
+        printf("./test.sh : script bash qui lance les tests.\n");
+        printf("make test : lancer tous les tests automatiquement.")
         return 0;
     }
 
     if (tree_flag) {
-        printf("Tree\n");
         /* Affiche tree */
         printTree(abs_tree);
     }
 
     if (symb_flag) {
-        printf("Symbol\n");
         /* Affiche symbol table */
         printTables(abs_tree);
     }
