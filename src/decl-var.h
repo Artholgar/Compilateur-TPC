@@ -17,6 +17,7 @@ typedef struct entry{
 
 typedef struct SymbolTable {
     TableEntry *array;
+    TableEntry *params;
     int stsize;
     char name[MAXNAME];
     struct SymbolTable *parent;

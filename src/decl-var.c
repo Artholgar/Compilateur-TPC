@@ -17,15 +17,11 @@ void Print_table(SymbolTable table) {
 
     current = table.array;
 
-    printf("[");
+    printf("%s :\n", table.name);
     while (current != NULL) {
-        printf("%s %s", current->type, current->identifier);
-        if (current->next != NULL) {
-            printf(", ");
-        }
+        printf("\t%s %s\n", current->type, current->identifier);
         current = current->next;
     }
-    printf("]");
 }
 
 void addVar(SymbolTable * table, const char name[], char *type) {
