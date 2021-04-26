@@ -109,7 +109,7 @@ void printTables(Node *node) {
     }
 }
 
-int make_table_aux(Node *node, SymbolTable *table) {
+int make_table_aux(Node *node, SymbolTable *table, Kind_Val kind) {
     char type[MAXNAME];
     int res = 0;
 
@@ -120,52 +120,52 @@ int make_table_aux(Node *node, SymbolTable *table) {
     switch (node->kind) {
         case Prog:
             initialisation_Table(table, "Global", NULL);
-            res = make_table_aux(node->firstChild, table);
-            res = res || make_table_aux(node->firstChild->nextSibling, table);
+            res = make_table_aux(node->firstChild, table, kind);
+            res = res || make_table_aux(node->firstChild->nextSibling, table, kind);
             break;
         
         case TypesVars:
-            res = make_table_aux(node->firstChild, table);
+            res = make_table_aux(node->firstChild, table, Variable);
             break;
         case Type:
             strcpy(type, node->u.identifier);
             for (Node *child = node->firstChild; child != NULL && (child->kind == Identifier);
                  child = child->nextSibling) {
-                res = res || addVar(table, child->u.identifier, type);
+                res = res || addVar(table, child->u.identifier, type, kind);
             }
-            res = res || make_table_aux(node->nextSibling, table);
+            res = res || make_table_aux(node->nextSibling, table, kind);
             break;
         case DeclFonct:
-            res = res || make_table_aux(node->firstChild, table);
+            res = res || make_table_aux(node->firstChild, table, Function);
             initialisation_Table(&node->u.symbol_tab, node->firstChild->firstChild->u.identifier, table);
             strcpy(node->u.symbol_tab.name, node->firstChild->firstChild->u.identifier);
-            res = res || make_table_aux(node->firstChild->firstChild->nextSibling, &node->u.symbol_tab);
-            res = res || make_table_aux(node->firstChild->nextSibling->firstChild, &node->u.symbol_tab);
+            res = res || make_table_aux(node->firstChild->firstChild->nextSibling, &node->u.symbol_tab, Parameter);
+            res = res || make_table_aux(node->firstChild->nextSibling->firstChild, &node->u.symbol_tab, Variable);
            
-            res = res || make_table_aux(node->nextSibling, table);
+            res = res || make_table_aux(node->nextSibling, table, kind);
             break;
         
         case DeclVars:
-            res = res || make_table_aux(node->firstChild, table);
+            res = res || make_table_aux(node->firstChild, table, Variable);
             break;
 
         case Parametres:
-            res = res || make_table_aux(node->firstChild, table) ;
+            res = res || make_table_aux(node->firstChild, table, Parameter) ;
             break;
 
         case Struct:
             strcpy(type, "struct ");
             strcat(type, node->u.identifier);
             if (node->firstChild->kind == DeclChamps) {
-                res = res || make_table_aux(node->nextSibling, table);
+                res = res || make_table_aux(node->nextSibling, table, kind);
                 break;
             }
 
             for (Node *child = node->firstChild; child != NULL && (child->kind == Identifier);
                  child = child->nextSibling) {
-                res = res || addVar(table, child->u.identifier, type);
+                res = res || addVar(table, child->u.identifier, type, kind);
             }
-            res = res || make_table_aux(node->nextSibling, table);
+            res = res || make_table_aux(node->nextSibling, table, kind);
             break;
 
         default:
@@ -176,5 +176,5 @@ int make_table_aux(Node *node, SymbolTable *table) {
 }
 
 int make_Symbole_table(Node *node) {
-    return make_table_aux(node, &node->u.symbol_tab);
+    return make_table_aux(node, &node->u.symbol_tab, Variable);
 }

@@ -19,7 +19,21 @@ void Print_table(SymbolTable table) {
 
     printf("%s :\n", table.name);
     while (current != NULL) {
-        printf("\t%s %s\n", current->type, current->identifier);
+        switch (current->kind) {
+        case Variable:
+            printf("\tVariable - ");
+            break;
+        case Function:
+            printf("\tFunction - ");
+            break;
+        case Parameter:
+            printf("\tParameter - ");
+            break;
+        
+        default:
+            break;
+        }
+        printf("%s %s\n", current->type, current->identifier);
         current = current->next;
     }
 }
@@ -44,7 +58,7 @@ int checkTable(SymbolTable * table, const char name[]) {
     return 0;
 }
 
-int addVar(SymbolTable * table, const char name[], char *type) {
+int addVar(SymbolTable * table, const char name[], char *type, Kind_Val kind) {
     TableEntry * new;
     int res = 0;
 
@@ -63,6 +77,7 @@ int addVar(SymbolTable * table, const char name[], char *type) {
 
     strcpy(table->array->identifier, name);
     strcpy(table->array->type, type);
+    table->array->kind = kind;
 
     return res;
 }
