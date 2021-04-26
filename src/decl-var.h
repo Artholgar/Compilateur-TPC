@@ -33,5 +33,5 @@ void initialisation_Table(SymbolTable *table, char* name, SymbolTable* parent);
 
 void Print_table(SymbolTable table);
 
-int addVar(SymbolTable * table, const char name[], char* type, Kind_Val kind);
+void addVar(SymbolTable * table, const char name[], char* type, Kind_Val kind);
 #endif

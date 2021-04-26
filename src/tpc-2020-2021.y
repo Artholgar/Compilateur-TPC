@@ -14,7 +14,6 @@ int yyparse();
 int yylex();
 int yyerror(const char *s);
 Node* abs_tree;
-int warn = 0;
 extern char line[200];
 extern int yylineno;
 extern int column;
@@ -49,7 +48,7 @@ extern char* yytext;
 Prog:  TypesVars DeclFoncts                         {   $$ = makeNode(Prog);
                                                         addChild($$, $1);
                                                         addChild($$, $2);
-                                                        warn = make_Symbole_table($$);
+                                                        make_Symbole_table($$);
                                                         abs_tree = $$;
                                                     }
     ;
@@ -392,12 +391,12 @@ int main(int argc, char *argv[]) {
     if (help_flag) {
         printf("./bin/tpcc [OPTIONS] FILE.tpc\n");
         printf("[OPTIONS] : \n");
-        printf("-t : affiche l'arbre abstrait.\n");
-        printf("-s : affiche toutes les tables des symboles.\n");
-        printf("-h : affiche une aide.\n");
+        printf("\t-t : affiche l'arbre abstrait.\n");
+        printf("\t-s : affiche toutes les tables des symboles.\n");
+        printf("\t-h : affiche une aide.\n");
         printf("FILE.tpc : le fichier a compiler.\n");
         printf("./test.sh : script bash qui lance les tests.\n");
-        printf("make test : lancer tous les tests automatiquement.")
+        printf("make test : lancer tous les tests automatiquement.\n");
         return 0;
     }
 
@@ -413,8 +412,5 @@ int main(int argc, char *argv[]) {
 
     deleteTree(abs_tree);
 
-    if (warn) {
-        return 2;
-    }
     return 0;
 }

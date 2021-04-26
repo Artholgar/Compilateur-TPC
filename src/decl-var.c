@@ -58,13 +58,12 @@ int checkTable(SymbolTable * table, const char name[]) {
     return 0;
 }
 
-int addVar(SymbolTable * table, const char name[], char *type, Kind_Val kind) {
+void addVar(SymbolTable * table, const char name[], char *type, Kind_Val kind) {
     TableEntry * new;
-    int res = 0;
 
     if (checkTable(table, name)) {
-        fprintf(stderr, "Warning : redefinition de la variable %s\n", name);
-        res = 2;
+        fprintf(stderr, "Error : redefinition de la variable %s\n", name);
+        exit(EXIT_FAILURE);
     }
 
     if (NULL == (new = (TableEntry *)malloc(sizeof(TableEntry)))) {
@@ -78,6 +77,4 @@ int addVar(SymbolTable * table, const char name[], char *type, Kind_Val kind) {
     strcpy(table->array->identifier, name);
     strcpy(table->array->type, type);
     table->array->kind = kind;
-
-    return res;
 }
