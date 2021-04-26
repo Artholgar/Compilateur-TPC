@@ -20,7 +20,7 @@ else
     for fich in $liste_valide
     do
         echo "./$2$fich :"
-        ./$1 < ./$2$fich
+        ./$1 ./$2$fich
         tmp=$?
         echo "valeur de retour : $tmp"
         echo ""
@@ -40,7 +40,7 @@ else
     for fich in $liste_invalide
     do
         echo "./$3$fich :"
-        ./$1 < ./$3$fich
+        ./$1 ./$3$fich
         tmp=$?
         echo "valeur de retour : $tmp"
         echo ""

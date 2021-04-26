@@ -81,7 +81,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 22 "src/tpc-2020-2021.y"
+#line 23 "src/tpc-2020-2021.y"
 
     struct Node * tree;
     char* carac;
