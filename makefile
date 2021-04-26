@@ -22,7 +22,7 @@ all: $(EXEC) clean
 
 test: $(EXEC) ./src/test.sh
 	chmod +x ./src/test.sh
-	./src/test.sh $(EXEC) ./test/test_corrects/ ./test/test_incorrects/ 
+	./src/test.sh $(EXEC) ./test/good/ ./test/syn-err/ 
 
 ./obj/$(NAMEYACC).tab.c ./obj/$(NAMEYACC).tab.h: ./src/$(NAMEYACC).y
 	bison $< --defines=./obj/$(NAMEYACC).tab.h -o ./obj/$(NAMEYACC).tab.c
@@ -41,4 +41,4 @@ $(EXEC): ./obj/lex.yy.o ./obj/$(NAMEYACC).tab.o $(OBJ)
 
 
 clean:
-	rm -f ./*.o
+	rm -f ./obj/*
