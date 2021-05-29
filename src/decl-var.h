@@ -3,7 +3,7 @@
 #define __DECL_VAR__
 
 #include <stdio.h>
-#include <stdlib.h>
+#include <stdlib.h> 
 #include <string.h>
 
 #define MAXNAME 32
