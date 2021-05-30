@@ -8,26 +8,42 @@
 void initialisation_Table(SymbolTable *table, char* name, SymbolTable* parent) {
 
     table->array = NULL;
+    table->types = NULL;
     strcpy(table->name, name);
     table->parent = parent;
+    table->stsize = 0;
 }
 
 void Print_table(SymbolTable table) {
     TableEntry * current;
+    TableType * current_type;
 
     current = table.array;
 
+    current_type = table.types;
+
+    if (current_type != NULL) {
+        printf("Types :\n");
+    }
+
+    while (current_type != NULL) {
+
+        printf("\t%s\n", current_type->name);
+        current_type = current_type->next;
+    }
+
     printf("%s :\n", table.name);
     while (current != NULL) {
+        printf("\t%ld - ", current->offset);
         switch (current->kind) {
         case Variable:
-            printf("\tVariable - ");
+            printf("Variable - ");
             break;
         case Function:
-            printf("\tFunction - ");
+            printf("Function - ");
             break;
         case Parameter:
-            printf("\tParameter - ");
+            printf("Parameter - ");
             break;
         
         default:
@@ -77,4 +93,28 @@ void addVar(SymbolTable * table, const char name[], char *type, Kind_Val kind) {
     strcpy(table->array->identifier, name);
     strcpy(table->array->type, type);
     table->array->kind = kind;
+    new->offset = - table->stsize;
+
+    if (strcmp(type, "int") == 0) {
+        table->stsize += 4;
+    }
+}
+
+void addType(SymbolTable * table, const char name[]) {
+    TableType * new;
+
+    if (NULL == (new = (TableType *)malloc(sizeof(TableType)))) {
+        perror("malloc");
+        exit(3);
+    }
+
+    new->next = table->types;
+    table->types = new;
+
+    strcpy(table->types->name, name);
+    table->types->champs = NULL;
+
+    if (strcmp(name, "int") == 0) {
+        table->stsize += 4;
+    }
 }

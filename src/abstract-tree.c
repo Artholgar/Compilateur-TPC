@@ -156,6 +156,7 @@ void make_table_aux(Node *node, SymbolTable *table, Kind_Val kind) {
             strcpy(type, "struct ");
             strcat(type, node->u.identifier);
             if (node->firstChild->kind == DeclChamps) {
+                addType(table, node->u.identifier);
                 make_table_aux(node->nextSibling, table, kind);
                 break;
             }
