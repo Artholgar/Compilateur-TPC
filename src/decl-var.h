@@ -7,6 +7,7 @@
 #include <string.h>
 
 #define MAXNAME 32
+#define MAXSYMBOLS 256
 
 typedef enum {
     Variable,
@@ -22,10 +23,17 @@ typedef struct entry{
     struct entry *next;
 } TableEntry;
 
+typedef struct champ {
+    char name[MAXNAME];
+    char type[MAXNAME];
+    int size;
+    struct champ *next;
+} TableChamp;
+
 typedef struct type {
     char name[MAXNAME];
     int size;
-    struct type *champs;
+    struct champ * champs;
     struct type *next;
 } TableType;
 
@@ -43,6 +51,5 @@ void Print_table(SymbolTable table);
 
 void addVar(SymbolTable * table, const char name[], char* type, Kind_Val kind);
 
-void addType(SymbolTable * table, const char name[]);
 
 #endif

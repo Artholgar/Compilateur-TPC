@@ -16,7 +16,7 @@ static const char *StringFromKind[] = {
 Node *makeNode(Kind kind) {
     Node *node;
 
-    if (NULL == (node = (Node*)malloc(sizeof(Node)))) {
+    if (NULL == (node = (Node *)malloc(sizeof(Node)))) {
         perror("malloc");
         exit(3);
     }
@@ -68,7 +68,12 @@ void printTree(Node *node) {
             printf(": %d", node->u.integer);
             break;
         case CharLiteral:
-            printf(": '%c'", node->u.character);
+            if (node->u.character == '\n') {
+                printf(": '\\n'");
+            }
+            else {
+                printf(": '%c'", node->u.character);
+            }
             break;
         case Type:
         case AddSub:
@@ -115,14 +120,14 @@ void make_table_aux(Node *node, SymbolTable *table, Kind_Val kind) {
     if (NULL == node) {
         return;
     }
-    
+
     switch (node->kind) {
         case Prog:
             initialisation_Table(table, "Global", NULL);
             make_table_aux(node->firstChild, table, kind);
             make_table_aux(node->firstChild->nextSibling, table, kind);
             break;
-        
+
         case TypesVars:
             make_table_aux(node->firstChild, table, Variable);
             break;
@@ -140,23 +145,23 @@ void make_table_aux(Node *node, SymbolTable *table, Kind_Val kind) {
             strcpy(node->u.symbol_tab.name, node->firstChild->firstChild->u.identifier);
             make_table_aux(node->firstChild->firstChild->nextSibling, &node->u.symbol_tab, Parameter);
             make_table_aux(node->firstChild->nextSibling->firstChild, &node->u.symbol_tab, Variable);
-           
+
             make_table_aux(node->nextSibling, table, kind);
             break;
-        
+
         case DeclVars:
             make_table_aux(node->firstChild, table, Variable);
             break;
 
         case Parametres:
-            make_table_aux(node->firstChild, table, Parameter) ;
+            make_table_aux(node->firstChild, table, Parameter);
             break;
 
         case Struct:
             strcpy(type, "struct ");
             strcat(type, node->u.identifier);
             if (node->firstChild->kind == DeclChamps) {
-                addType(table, node->u.identifier);
+                addType(node, table, node->u.identifier);
                 make_table_aux(node->nextSibling, table, kind);
                 break;
             }
@@ -175,4 +180,49 @@ void make_table_aux(Node *node, SymbolTable *table, Kind_Val kind) {
 
 void make_Symbole_table(Node *node) {
     make_table_aux(node, &node->u.symbol_tab, Variable);
+}
+
+void addType(Node *node, SymbolTable *table, const char name[]) {
+    TableType *new;
+    Node *current;
+    TableChamp *champ;
+
+    if (NULL == (new = (TableType *)malloc(sizeof(TableType)))) {
+        perror("malloc");
+        exit(3);
+    }
+
+    new->next = table->types;
+    table->types = new;
+
+    strcpy(table->types->name, name);
+    table->types->champs = NULL;
+    table->types->size = 0;
+
+    current = node->firstChild->firstChild;
+
+    while (current != NULL) {
+        if (NULL == (champ = (TableChamp *)malloc(sizeof(TableChamp)))) {
+            perror("malloc");
+            exit(3);
+        }
+        strcpy(champ->name, current->firstChild->u.identifier);
+
+        strcpy(champ->type, current->u.identifier);
+
+        // type du champ
+        if (strcmp(champ->type, "int") == 0) {
+            champ->size = 4;
+        } else {
+            champ->size = 1;
+        }
+
+        // incrémentation de la taille de la struct avec l'alignement mémoire
+        table->types->size += champ->size + (table->types->size % champ->size);
+
+        champ->next = table->types->champs;
+        table->types->champs = champ;
+
+        current = current->nextSibling;
+    }
 }

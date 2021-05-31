@@ -3,10 +3,7 @@
 /* Compatible avec decl-var.lex */
 #include "decl-var.h"
 
-#define MAXSYMBOLS 256
-
-void initialisation_Table(SymbolTable *table, char* name, SymbolTable* parent) {
-
+void initialisation_Table(SymbolTable *table, char *name, SymbolTable *parent) {
     table->array = NULL;
     table->types = NULL;
     strcpy(table->name, name);
@@ -15,8 +12,8 @@ void initialisation_Table(SymbolTable *table, char* name, SymbolTable* parent) {
 }
 
 void Print_table(SymbolTable table) {
-    TableEntry * current;
-    TableType * current_type;
+    TableEntry *current;
+    TableType *current_type;
 
     current = table.array;
 
@@ -27,8 +24,11 @@ void Print_table(SymbolTable table) {
     }
 
     while (current_type != NULL) {
-
-        printf("\t%s\n", current_type->name);
+        printf("\t%d - %s\n", current_type->size, current_type->name);
+        
+        for (TableChamp *current_champ = current_type->champs; current_champ != NULL; current_champ = current_champ->next) {
+            printf("\t\t%s - %s\n", current_champ->type, current_champ->name);
+        }
         current_type = current_type->next;
     }
 
@@ -36,26 +36,26 @@ void Print_table(SymbolTable table) {
     while (current != NULL) {
         printf("\t%ld - ", current->offset);
         switch (current->kind) {
-        case Variable:
-            printf("Variable - ");
-            break;
-        case Function:
-            printf("Function - ");
-            break;
-        case Parameter:
-            printf("Parameter - ");
-            break;
-        
-        default:
-            break;
+            case Variable:
+                printf("Variable - ");
+                break;
+            case Function:
+                printf("Function - ");
+                break;
+            case Parameter:
+                printf("Parameter - ");
+                break;
+
+            default:
+                break;
         }
         printf("%s %s\n", current->type, current->identifier);
         current = current->next;
     }
 }
 
-int checkTable(SymbolTable * table, const char name[]) {
-    TableEntry * current;
+int checkTable(SymbolTable *table, const char name[]) {
+    TableEntry *current;
 
     if (NULL == table) {
         return 0;
@@ -74,8 +74,8 @@ int checkTable(SymbolTable * table, const char name[]) {
     return 0;
 }
 
-void addVar(SymbolTable * table, const char name[], char *type, Kind_Val kind) {
-    TableEntry * new;
+void addVar(SymbolTable *table, const char name[], char *type, Kind_Val kind) {
+    TableEntry *new;
 
     if (checkTable(table, name)) {
         fprintf(stderr, "Error : redefinition de la variable %s\n", name);
@@ -93,28 +93,9 @@ void addVar(SymbolTable * table, const char name[], char *type, Kind_Val kind) {
     strcpy(table->array->identifier, name);
     strcpy(table->array->type, type);
     table->array->kind = kind;
-    new->offset = - table->stsize;
+    new->offset = -table->stsize;
 
     if (strcmp(type, "int") == 0) {
-        table->stsize += 4;
-    }
-}
-
-void addType(SymbolTable * table, const char name[]) {
-    TableType * new;
-
-    if (NULL == (new = (TableType *)malloc(sizeof(TableType)))) {
-        perror("malloc");
-        exit(3);
-    }
-
-    new->next = table->types;
-    table->types = new;
-
-    strcpy(table->types->name, name);
-    table->types->champs = NULL;
-
-    if (strcmp(name, "int") == 0) {
         table->stsize += 4;
     }
 }

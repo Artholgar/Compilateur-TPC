@@ -104,7 +104,15 @@ char line[200];
                         }
 '.'                     { 
                             struct Node * t = makeNode(CharLiteral);
+                            printf("%s\n", yytext);
                             t->u.character = yytext[1]; 
+                            yylval.tree = t; 
+                            column = next_column; next_column+=strlen(yytext); return CHARACTER; 
+                        }
+'\\n'                     { 
+                            struct Node * t = makeNode(CharLiteral);
+                            printf("%s\n", yytext);
+                            t->u.character = '\n'; 
                             yylval.tree = t; 
                             column = next_column; next_column+=strlen(yytext); return CHARACTER; 
                         }
