@@ -32,7 +32,7 @@ void Print_table(SymbolTable table) {
         current_type = current_type->next;
     }
 
-    printf("%s :\n", table.name);
+    printf("%s - size = %d :\n", table.name, table.stsize);
     while (current != NULL) {
         printf("\t%ld - ", current->offset);
         switch (current->kind) {
@@ -74,8 +74,30 @@ int checkTable(SymbolTable *table, const char name[]) {
     return 0;
 }
 
+int checkType(TableType* type, SymbolTable *table, const char name[]) {
+    TableType *current;
+
+    if (NULL == table) {
+        return 0;
+    }
+    if (checkType(type, table->parent, name)) {
+        return 1;
+    }
+    current = table->types;
+
+    while (current != NULL) {
+        if (strcmp(current->name, name) == 0) {
+            (*type) = *current;
+            return 1;
+        }
+        current = current->next;
+    }
+    return 0;
+}
+
 void addVar(SymbolTable *table, const char name[], char *type, Kind_Val kind) {
     TableEntry *new;
+    TableType new_type;
 
     if (checkTable(table, name)) {
         fprintf(stderr, "Error : redefinition de la variable %s\n", name);
@@ -93,9 +115,21 @@ void addVar(SymbolTable *table, const char name[], char *type, Kind_Val kind) {
     strcpy(table->array->identifier, name);
     strcpy(table->array->type, type);
     table->array->kind = kind;
-    new->offset = -table->stsize;
+    new->offset = table->stsize;
 
     if (strcmp(type, "int") == 0) {
         table->stsize += 4;
+    }
+    else if (strcmp(type, "char") == 0) {
+        table->stsize += 1;
+    }
+    else {
+        if (checkType(&new_type, table, type) == 1) {
+            table->stsize += new_type.size;
+        }
+        else {
+            // erreur sémantique, a toi de jouer Thomas !!
+            ;
+        }
     }
 }
