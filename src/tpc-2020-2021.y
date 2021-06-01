@@ -58,7 +58,7 @@ TypesVars:
                                                         addChild($$, $2);
                                                         addChild($2, $3);
                                                     }
-    |  TypesVars STRUCT IDENT '{' DeclChamps '}'    {   
+    |  TypesVars STRUCT IDENT '{' DeclChamps '}' ';'{   
                                                         $$ = $1;
                                                         addChild($$, $2);
                                                         strcpy($2->u.identifier, $3->u.identifier);
