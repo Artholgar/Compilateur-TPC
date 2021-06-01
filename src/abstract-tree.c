@@ -185,7 +185,7 @@ void make_Symbole_table(Node *node) {
 void addType(Node *node, SymbolTable *table, const char name[]) {
     TableType *new;
     Node *current;
-    TableChamp *champ;
+    TableChamp *champ, *tmp;
 
     if (NULL == (new = (TableType *)malloc(sizeof(TableType)))) {
         perror("malloc");
@@ -220,8 +220,17 @@ void addType(Node *node, SymbolTable *table, const char name[]) {
         // incrémentation de la taille de la struct avec l'alignement mémoire
         table->types->size += champ->size + (table->types->size % champ->size);
 
-        champ->next = table->types->champs;
-        table->types->champs = champ;
+        tmp = table->types->champs;
+
+        if (tmp != NULL) {
+            while (tmp->next != NULL) {
+                tmp = tmp->next;
+            }
+            tmp->next = champ;
+        }
+        else {
+            table->types->champs = champ;
+        }
 
         current = current->nextSibling;
     }

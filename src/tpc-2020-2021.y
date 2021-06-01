@@ -5,9 +5,11 @@
 #include <stdio.h>
 #include "../src/abstract-tree.h"
 #include "../src/decl-var.h"
+#include "../src/trad.h"
 #include <string.h>
 #include <unistd.h>
 #include <getopt.h>
+
 #define YYERROR_VERBOSE 1
 extern FILE *yyin;
 int yyparse();
@@ -388,6 +390,8 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    fclose(yyin);
+
     if (help_flag) {
         printf("./bin/tpcc [OPTIONS] FILE.tpc\n");
         printf("[OPTIONS] : \n");
@@ -409,6 +413,8 @@ int main(int argc, char *argv[]) {
         /* Affiche symbol table */
         printTables(abs_tree);
     }
+
+    trad_to_nasm(argv[argc - 1], abs_tree);
 
     deleteTree(abs_tree);
 

@@ -1,10 +1,57 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include "trad.h"
 
-int create_nasm_file(char* name) {
+int trad_to_nasm(char* name, Node* node) {
+    FILE* file;
+    file = create_nasm_file(name);
+    trad_struct(file, node->u.symbol_tab.types);
+    close_nasm_file(file);
+    return 0;
+}
+
+FILE* create_nasm_file(char* name) {
+    int i;
+    FILE* file;
     if (name == NULL) {
-        name = "_anonymous";
+        name = "_anonymous.asm";
+    }
+    else {
+        for (i = strlen(name); name[i] != '.'; i--) {
+            ;
+        }
+
+        name[i+1] = 'a';
+        name[i+2] = 's';
+        name[i+3] = 'm';
+        name[i+4] = '\0';
     }
 
-    return 1;
+    if (NULL == (file = fopen(name, "w"))) {
+        perror("fopen");
+        exit(3);
+    }
+
+    return file;
+}
+
+void close_nasm_file(FILE* file) {
+    fclose(file);
+}
+
+int trad_struct(FILE* file, TableType* types) {
+    char  name[MAXNAME];
+    while (types != NULL) {
+
+        strcpy(name, types->name);
+        // remove 'struct ' from type name
+        memmove(name, name+7, strlen(name));
+        fprintf(file, "struc %s\n", name);
+
+        for (TableChamp* champ = types->champs; champ != NULL; champ = champ->next) {
+            fprintf(file, "\t.%s resb %d\n", champ->name, champ->size);
+        }
+        fprintf(file, "endstruc\n");
+
+        types = types->next;
+    }
+    return 0;
 }

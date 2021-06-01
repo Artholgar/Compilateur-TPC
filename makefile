@@ -9,13 +9,14 @@ CFLAGS=-Wall
 LDFLAGS=-Wall -lfl
 NAMELEX=tpc-2020-2021
 NAMEYACC=tpc-2020-2021
-OBJ=./obj/abstract-tree.o ./obj/decl-var.o
+OBJ=./obj/abstract-tree.o ./obj/decl-var.o ./obj/trad.o
 EXEC=./bin/tpcc
 
 all: $(EXEC) clean
 
 ./obj/abstract-tree.o: ./src/abstract-tree.c ./src/abstract-tree.h
 ./obj/decl-var.o: ./src/decl-var.c ./src/decl-var.h
+./obj/trad.o: ./src/trad.c ./src/trad.h
 
 ./obj/%.o: ./src/%.c
 	$(CC) -o $@ -c $< $(CFLAGS)
