@@ -4,8 +4,10 @@ int trad_to_nasm(char* name, Node* node) {
     FILE* file;
     file = create_nasm_file(name);
     trad_struct(file, node->u.symbol_tab.types);
-    fprintf(file, "\n");
+    
     trad_bss(file, node->u.symbol_tab);
+
+    trad_text(file, node);
     close_nasm_file(file);
     return 0;
 }
@@ -54,6 +56,7 @@ int trad_struct(FILE* file, TableType* types) {
         fprintf(file, "endstruc\n");
 
         types = types->next;
+        fprintf(file, "\n");
     }
     return 0;
 }
@@ -66,5 +69,10 @@ int trad_bss(FILE* file, SymbolTable symb_tab) {
     for (current = symb_tab.array; current != NULL; current = current->next) {
         fprintf(file, "\t%s resb %ld\n", current->identifier, current->size);
     }
+    return 1;
+}
+
+int trad_text(FILE* file, Node* node) {
+    
     return 1;
 }

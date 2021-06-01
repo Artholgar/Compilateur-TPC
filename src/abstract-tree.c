@@ -245,8 +245,7 @@ void addType(Node *node, SymbolTable *table, const char name[]) {
         }
         current = current->nextSibling;
     }
-    printf("%d\n", max);
-    printf("%d\n", table->types->size);
+    // alignement mémoire pour la fin de la struct
     if (table->types->size % max != 0) {
         table->types->size += max - (table->types->size % max);
     }

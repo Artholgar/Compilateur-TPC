@@ -172,13 +172,10 @@ void addFunc(SymbolTable *table, const char name[], char *type) {
         new->size = 1;
     }
     else {
-        printf("%s\n", type);
         if (checkType(&new_type, table, type) == 1) {
-            printf("lalai\n");
             new->size = new_type.size;
         }
         else {
-            printf("lalae\n");
             // erreur sémantique, a toi de jouer Thomas !!
             ;
         }
