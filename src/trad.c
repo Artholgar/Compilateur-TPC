@@ -64,7 +64,7 @@ int trad_bss(FILE* file, SymbolTable symb_tab) {
     fprintf(file, "section .bss\n");
 
     for (current = symb_tab.array; current != NULL; current = current->next) {
-        fprintf(file, "\t%s resb %d\n", current->identifier, current->size);
+        fprintf(file, "\t%s resb %ld\n", current->identifier, current->size);
     }
     return 1;
 }

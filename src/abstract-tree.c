@@ -70,8 +70,7 @@ void printTree(Node *node) {
         case CharLiteral:
             if (node->u.character == '\n') {
                 printf(": '\\n'");
-            }
-            else {
+            } else {
                 printf(": '%c'", node->u.character);
             }
             break;
@@ -140,7 +139,17 @@ void make_table_aux(Node *node, SymbolTable *table, Kind_Val kind) {
             make_table_aux(node->nextSibling, table, kind);
             break;
         case DeclFonct:
-            make_table_aux(node->firstChild, table, Function);
+            if (strcmp(node->firstChild->u.identifier, "int") == 0) {
+                strcpy(type, "int");
+            } else if (strcmp(node->firstChild->u.identifier, "char") == 0) {
+                strcpy(type, "char");
+            } else {
+                strcpy(type, "struct ");
+                strcat(type, node->firstChild->u.identifier);
+            }
+
+            addFunc(table, node->firstChild->firstChild->u.identifier, type);
+            // make_table_aux(node->firstChild, table, Function);
             initialisation_Table(&node->u.symbol_tab, node->firstChild->firstChild->u.identifier, table);
             strcpy(node->u.symbol_tab.name, node->firstChild->firstChild->u.identifier);
             make_table_aux(node->firstChild->firstChild->nextSibling, &node->u.symbol_tab, Parameter);
@@ -227,8 +236,7 @@ void addType(Node *node, SymbolTable *table, const char name[]) {
                 tmp = tmp->next;
             }
             tmp->next = champ;
-        }
-        else {
+        } else {
             table->types->champs = champ;
         }
 

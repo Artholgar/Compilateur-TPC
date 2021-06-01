@@ -14,10 +14,13 @@ void initialisation_Table(SymbolTable *table, char *name, SymbolTable *parent) {
 void Print_table(SymbolTable table) {
     TableEntry *current;
     TableType *current_type;
+    TableFunc *current_func;
 
     current = table.array;
 
     current_type = table.types;
+
+    current_func = table.func;
 
     if (current_type != NULL) {
         printf("Types :\n");
@@ -30,6 +33,16 @@ void Print_table(SymbolTable table) {
             printf("\t\t%s - %s\n", current_champ->type, current_champ->name);
         }
         current_type = current_type->next;
+    }
+
+    if (current_func != NULL) {
+        printf("Fonctions :\n");
+    }
+
+    while (current_func != NULL) {
+        printf("\t%d - %s\n", current_func->size, current_func->name);
+        
+        current_func = current_func->next;
     }
 
     printf("%s - size = %d :\n", table.name, table.stsize);
@@ -131,6 +144,41 @@ void addVar(SymbolTable *table, const char name[], char *type, Kind_Val kind) {
             new->size = new_type.size;
         }
         else {
+            // erreur sémantique, a toi de jouer Thomas !!
+            ;
+        }
+    }
+}
+
+void addFunc(SymbolTable *table, const char name[], char *type) {
+    TableFunc *new;
+    TableType new_type;
+
+    if (NULL == (new = (TableFunc *)malloc(sizeof(TableFunc)))) {
+        perror("malloc");
+        exit(3);
+    }
+
+    new->next = table->func;
+    table->func = new;
+
+    strcpy(table->func->name, name);
+    strcpy(table->func->type, type);
+
+    if (strcmp(type, "int") == 0) {
+        new->size = 4;
+    }
+    else if (strcmp(type, "char") == 0) {
+        new->size = 1;
+    }
+    else {
+        printf("%s\n", type);
+        if (checkType(&new_type, table, type) == 1) {
+            printf("lalai\n");
+            new->size = new_type.size;
+        }
+        else {
+            printf("lalae\n");
             // erreur sémantique, a toi de jouer Thomas !!
             ;
         }

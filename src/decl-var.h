@@ -38,9 +38,17 @@ typedef struct type {
     struct type *next;
 } TableType;
 
+typedef struct func {
+    char name[MAXNAME];
+    char type[MAXNAME];
+    int size;
+    struct func *next;
+} TableFunc;
+
 typedef struct SymbolTable {
     TableEntry *array;
     TableType *types;
+    TableFunc *func;
     int stsize;
     char name[MAXNAME];
     struct SymbolTable *parent;
@@ -51,6 +59,8 @@ void initialisation_Table(SymbolTable *table, char* name, SymbolTable* parent);
 void Print_table(SymbolTable table);
 
 void addVar(SymbolTable * table, const char name[], char* type, Kind_Val kind);
+
+void addFunc(SymbolTable *table, const char name[], char *type);
 
 
 #endif
