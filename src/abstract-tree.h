@@ -79,7 +79,6 @@ void printTree(Node *node);
 void printTables(Node *node);
 void make_Symbole_table(Node *node);
 void addType(Node *node, SymbolTable * table, const char name[]);
-void addFunc(SymbolTable *table, const char name[], char *type);
 
 #define FIRSTCHILD(node) node->firstChild
 #define SECONDCHILD(node) node->firstChild->nextSibling

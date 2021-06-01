@@ -195,6 +195,7 @@ void addType(Node *node, SymbolTable *table, const char name[]) {
     TableType *new;
     Node *current;
     TableChamp *champ, *tmp;
+    size_t max = 0;
 
     if (NULL == (new = (TableType *)malloc(sizeof(TableType)))) {
         perror("malloc");
@@ -239,7 +240,14 @@ void addType(Node *node, SymbolTable *table, const char name[]) {
         } else {
             table->types->champs = champ;
         }
-
+        if (champ->size > max) {
+            max = champ->size;
+        }
         current = current->nextSibling;
+    }
+    printf("%d\n", max);
+    printf("%d\n", table->types->size);
+    if (table->types->size % max != 0) {
+        table->types->size += max - (table->types->size % max);
     }
 }
