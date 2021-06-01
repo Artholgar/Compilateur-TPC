@@ -20,6 +20,7 @@ typedef struct entry{
     char type[MAXNAME];
     Kind_Val kind;
     size_t offset;  // Offset in bytes.
+    size_t size;
     struct entry *next;
 } TableEntry;
 

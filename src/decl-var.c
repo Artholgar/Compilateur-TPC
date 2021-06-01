@@ -119,13 +119,16 @@ void addVar(SymbolTable *table, const char name[], char *type, Kind_Val kind) {
 
     if (strcmp(type, "int") == 0) {
         table->stsize += 4;
+        new->size = 4;
     }
     else if (strcmp(type, "char") == 0) {
         table->stsize += 1;
+        new->size = 1;
     }
     else {
         if (checkType(&new_type, table, type) == 1) {
             table->stsize += new_type.size;
+            new->size = new_type.size;
         }
         else {
             // erreur sémantique, a toi de jouer Thomas !!

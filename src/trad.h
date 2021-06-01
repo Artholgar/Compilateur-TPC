@@ -16,4 +16,6 @@ void close_nasm_file(FILE* file);
 
 int trad_struct(FILE* file, TableType* types);
 
+int trad_bss(FILE* file, SymbolTable symb_tab);
+
 #endif
