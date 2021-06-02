@@ -58,6 +58,14 @@ void initialisation_Table(SymbolTable *table, char* name, SymbolTable* parent);
 
 void Print_table(SymbolTable table);
 
+int checkTable(TableEntry** entry, SymbolTable *table, const char name[]);
+
+int isGlobal(SymbolTable *table, const char name[]);
+
+int checkType(TableType** type, SymbolTable *table, const char name[]);
+
+int checkChamp(TableChamp** champ, TableType *type, const char name[]);
+
 void addVar(SymbolTable * table, const char name[], char* type, Kind_Val kind);
 
 void addFunc(SymbolTable *table, const char name[], char *type);

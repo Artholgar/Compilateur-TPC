@@ -308,8 +308,7 @@ LValue:
                                                         $$ = $1;
                                                     }
     |  IDENT '.' IDENT                              {   
-                                                        $$ = makeNode(LValue);
-                                                        addChild($$, $1);
+                                                        $$ = $1;
                                                         addChild($$, $3);
                                                     }
     ;
