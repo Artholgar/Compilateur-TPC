@@ -69,10 +69,32 @@ int trad_bss(FILE* file, SymbolTable symb_tab) {
     for (current = symb_tab.array; current != NULL; current = current->next) {
         fprintf(file, "\t%s resb %ld\n", current->identifier, current->size);
     }
+
+    fprintf(file, "\n");
     return 1;
 }
 
 int trad_text(FILE* file, Node* node) {
+    TableFunc* current_func;
+    Node* function;
+
+    fprintf(file, "section .text\n");
+
+    for (current_func = node->u.symbol_tab.func; current_func != NULL; current_func = current_func->next) {
+        fprintf(file, "global %s\n", current_func->name);
+    }
+
+    for (function = node->firstChild->nextSibling; function != NULL; function = function->nextSibling) {
+        fprintf(file, "\n");
+        fprintf(file, "%s :\n", function->firstChild->firstChild->u.identifier);
+
+        fprintf(file, "\tpush rbp\n\tmov rbp, rsp\n");
+
+        fprintf(file, "\tsub rsp, %d\n", function->u.symbol_tab.stsize);
+
+
+        fprintf(file, "\tmov rax, 60\n\tmov rdi, 0\n\tsyscall\n");
+    }
     
     return 1;
 }
