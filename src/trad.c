@@ -239,6 +239,7 @@ int trad_instr(FILE* file, Node* node, SymbolTable* table) {
                 fprintf(file, "\tmov rax, rdx\n\n");
             }
             break;
+        case Compare:
         case Equals:
             trad_instr(file, node->firstChild, table);
             fprintf(file, "\tpush rax\n");
@@ -262,15 +263,6 @@ int trad_instr(FILE* file, Node* node, SymbolTable* table) {
             fprintf(file, "\tjmp L%d\n", end_label);
             fprintf(file, "L%d:\n", end_label);
             labelno += 1;
-            break;
-        case Compare:
-            trad_instr(file, node->firstChild, table);
-            fprintf(file, "\tpush rax\n");
-            trad_instr(file, node->firstChild->nextSibling, table);
-            fprintf(file, "\tpush rax\n");
-            fprintf(file, "\tpop rbx\n");
-            fprintf(file, "\tpop rax\n");
-            fprintf(file, "\tcmp rax, rbx\n\n");
             break;
         case Asignment:
             trad_assignment(file, node, table);
