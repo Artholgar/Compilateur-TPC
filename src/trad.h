@@ -18,6 +18,8 @@ int trad_struct(FILE* file, TableType* types);
 
 int trad_bss(FILE* file, SymbolTable symb_tab);
 
+int trad_instr(FILE* file, Node* node, SymbolTable* table);
+
 int trad_text(FILE* file, Node* node);
 
 #endif

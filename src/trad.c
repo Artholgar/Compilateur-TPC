@@ -122,15 +122,44 @@ int trad_variable(FILE* file, Node* node, SymbolTable* table) {
 
 int trad_assignment(FILE* file, Node* node, SymbolTable* table) {
     TableEntry* Lval = NULL;
+    TableEntry* Rval = NULL;
     TableType* type = NULL;
+
     if (checkTable(&Lval, table, node->firstChild->u.identifier)) {
+        // Quand il ne s'agit pas d'une structure entière.
         if (!(checkType(&type, table, Lval->type)) || node->firstChild->firstChild != NULL) {
+            // On traduit d'abord ce qu'il y a a gauche
+            if (checkTable(&Rval, table, node->firstChild->nextSibling->u.identifier)) {
+                // on traduit l'instruction, et on met le resultat dans rax
+                trad_instr(file, node->firstChild->nextSibling, table);
+                fprintf(file, "\tmov rax, ");
+                trad_variable(file, node->firstChild->nextSibling, table);
+                fprintf(file, "\n");
+            }
+
             fprintf(file, "\tmov ");
             trad_variable(file, node->firstChild, table);
-            fprintf(file, ", ");
-            fprintf(file, "\n");
+            fprintf(file, ", rax\n");
+        } else {
+            ;
         }
     }
+    return 1;
+}
+
+int trad_instr(FILE* file, Node* node, SymbolTable* table) {
+    switch (node->kind) {
+        case Identifier:
+            
+            break;
+        case Asignment:
+            trad_assignment(file, node, table);
+            break;
+
+        default:
+            break;
+    }
+
     return 1;
 }
 
@@ -157,9 +186,7 @@ int trad_text(FILE* file, Node* node) {
         corp = function->firstChild->nextSibling;
 
         for (instr = corp->firstChild->nextSibling->firstChild; instr != NULL; instr = instr->nextSibling) {
-            if (instr->kind == Asignment) {
-                trad_assignment(file, instr, &(function->u.symbol_tab));
-            }
+            trad_instr(file, instr, &(function->u.symbol_tab));
         }
 
         // fprintf(file, "\tmov rax, 60\n\tmov rdi, 0\n\tsyscall\n");
