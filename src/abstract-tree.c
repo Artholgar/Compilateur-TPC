@@ -77,6 +77,7 @@ void printTree(Node *node) {
         case Type:
         case AddSub:
         case DivStar:
+        case Compare:
         case Struct:
         case Func:
         case Identifier:

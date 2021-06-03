@@ -1,5 +1,7 @@
 #include "trad.h"
 
+int labelno = 0;
+
 int trad_to_nasm(char* name, Node* node) {
     FILE* file;
     file = create_nasm_file(name);
@@ -123,6 +125,7 @@ int trad_variable(FILE* file, Node* node, SymbolTable* table) {
 int trad_identifier(FILE* file, Node* node, SymbolTable* table) {
     TableType* type = NULL;
     TableEntry* Lval = NULL;
+    TableChamp* champ = NULL;
 
     if (checkTable(&Lval, table, node->u.identifier)) {
         // Quand il ne s'agit pas d'une structure entière.
@@ -132,8 +135,15 @@ int trad_identifier(FILE* file, Node* node, SymbolTable* table) {
 
             if (strcmp(Lval->type, "int") == 0) {
                 fprintf(file, "eax, ");
-            } else {
+            } else if (strcmp(Lval->type, "char") == 0) {
                 fprintf(file, "al, ");
+            } else {
+                checkChamp(&champ, type, node->firstChild->u.identifier);
+                if (strcmp(champ->type, "int") == 0) {
+                    fprintf(file, "eax, ");
+                } else if (strcmp(champ->type, "char") == 0) {
+                    fprintf(file, "al, ");
+                }
             }
 
             trad_variable(file, node, table);
@@ -150,6 +160,7 @@ int trad_identifier(FILE* file, Node* node, SymbolTable* table) {
 int trad_assignment(FILE* file, Node* node, SymbolTable* table) {
     TableEntry* Lval = NULL;
     TableType* type = NULL;
+    TableChamp* champ = NULL;
 
     if (checkTable(&Lval, table, node->firstChild->u.identifier)) {
         // Quand il ne s'agit pas d'une structure entière.
@@ -162,8 +173,15 @@ int trad_assignment(FILE* file, Node* node, SymbolTable* table) {
             trad_variable(file, node->firstChild, table);
             if (strcmp(Lval->type, "int") == 0) {
                 fprintf(file, ", eax\n");
-            } else {
+            } else if (strcmp(Lval->type, "char") == 0) {
                 fprintf(file, ", al\n");
+            } else {
+                checkChamp(&champ, type, node->firstChild->firstChild->u.identifier);
+                if (strcmp(champ->type, "int") == 0) {
+                    fprintf(file, ", eax\n");
+                } else if (strcmp(champ->type, "char") == 0) {
+                    fprintf(file, ", al\n");
+                }
             }
 
         } else {
@@ -174,6 +192,8 @@ int trad_assignment(FILE* file, Node* node, SymbolTable* table) {
 }
 
 int trad_instr(FILE* file, Node* node, SymbolTable* table) {
+    int true_label, false_label, end_label;
+
     switch (node->kind) {
         case IntLiteral:
             fprintf(file, "\txor rax, rax\n");
@@ -196,11 +216,10 @@ int trad_instr(FILE* file, Node* node, SymbolTable* table) {
 
             if (strcmp(node->u.identifier, "+") == 0) {
                 fprintf(file, "\tadd eax, ebx\n\n");
-            }
-            else {
+            } else {
                 fprintf(file, "\tsub eax, ebx\n\n");
             }
-            
+
             break;
         case DivStar:
             trad_instr(file, node->firstChild, table);
@@ -221,6 +240,30 @@ int trad_instr(FILE* file, Node* node, SymbolTable* table) {
             }
             break;
         case Equals:
+            trad_instr(file, node->firstChild, table);
+            fprintf(file, "\tpush rax\n");
+            trad_instr(file, node->firstChild->nextSibling, table);
+            fprintf(file, "\tpush rax\n");
+            fprintf(file, "\tpop rbx\n");
+            fprintf(file, "\tpop rax\n");
+            fprintf(file, "\tcmp rax, rbx\n");
+
+            true_label = labelno;
+            fprintf(file, "\tje L%d\n", true_label); 
+            labelno += 1;
+            false_label = labelno;
+            fprintf(file, "L%d:\n", false_label);
+            fprintf(file, "\tmov rax, 0\n");
+            labelno += 1;
+            end_label = labelno;
+            fprintf(file, "\tjmp L%d\n", end_label);
+            fprintf(file, "L%d:\n", true_label);
+            fprintf(file, "\tmov rax, 1\n");
+            fprintf(file, "\tjmp L%d\n", end_label);
+            fprintf(file, "L%d:\n", end_label);
+            labelno += 1;
+            break;
+        case Compare:
             trad_instr(file, node->firstChild, table);
             fprintf(file, "\tpush rax\n");
             trad_instr(file, node->firstChild->nextSibling, table);
