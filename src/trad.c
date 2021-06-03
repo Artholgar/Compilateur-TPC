@@ -127,13 +127,13 @@ int trad_identifier(FILE* file, Node* node, SymbolTable* table) {
     if (checkTable(&Lval, table, node->u.identifier)) {
         // Quand il ne s'agit pas d'une structure entière.
         if (!(checkType(&type, table, Lval->type)) || node->firstChild != NULL) {
-
+            fprintf(file, "\txor rax, rax\n");
             fprintf(file, "\tmov ");
 
             if (strcmp(Lval->type, "int") == 0) {
                 fprintf(file, "eax, ");
             } else {
-                fprintf(file, "ax, ");
+                fprintf(file, "al, ");
             }
 
             trad_variable(file, node, table);
@@ -157,13 +157,13 @@ int trad_assignment(FILE* file, Node* node, SymbolTable* table) {
             // On traduit d'abord ce qu'il y a a droite
             // on traduit l'instruction, et on met le resultat dans rax
             trad_instr(file, node->firstChild->nextSibling, table);
-            fprintf(file, "\txor rax, rax\n");
+            
             fprintf(file, "\tmov ");
             trad_variable(file, node->firstChild, table);
             if (strcmp(Lval->type, "int") == 0) {
                 fprintf(file, ", eax\n");
             } else {
-                fprintf(file, ", ax\n");
+                fprintf(file, ", al\n");
             }
 
         } else {
