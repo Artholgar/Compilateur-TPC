@@ -157,7 +157,7 @@ int trad_assignment(FILE* file, Node* node, SymbolTable* table) {
             // On traduit d'abord ce qu'il y a a droite
             // on traduit l'instruction, et on met le resultat dans rax
             trad_instr(file, node->firstChild->nextSibling, table);
-            
+
             fprintf(file, "\tmov ");
             trad_variable(file, node->firstChild, table);
             if (strcmp(Lval->type, "int") == 0) {
@@ -191,8 +191,8 @@ int trad_instr(FILE* file, Node* node, SymbolTable* table) {
             fprintf(file, "\tpush rax\n");
             trad_instr(file, node->firstChild->nextSibling, table);
             fprintf(file, "\tpush rax\n");
-            fprintf(file, "\tpop rbx\n\n");
-            fprintf(file, "\tpop rax\n\n");
+            fprintf(file, "\tpop rbx\n");
+            fprintf(file, "\tpop rax\n");
 
             if (strcmp(node->u.identifier, "+") == 0) {
                 fprintf(file, "\tadd eax, ebx\n\n");
@@ -207,9 +207,27 @@ int trad_instr(FILE* file, Node* node, SymbolTable* table) {
             fprintf(file, "\tpush rax\n");
             trad_instr(file, node->firstChild->nextSibling, table);
             fprintf(file, "\tpush rax\n");
-            fprintf(file, "\tpop rbx\n\n");
-            fprintf(file, "\tpop rax\n\n");
-            fprintf(file, "\timul eax, ebx\n\n");
+            fprintf(file, "\tpop rbx\n");
+            fprintf(file, "\tpop rax\n");
+            if (strcmp(node->u.identifier, "*") == 0) {
+                fprintf(file, "\timul eax, ebx\n\n");
+            } else if (strcmp(node->u.identifier, "/") == 0) {
+                fprintf(file, "\txor rdx, rdx\n");
+                fprintf(file, "\tidiv ebx\n\n");
+            } else {
+                fprintf(file, "\txor rdx, rdx\n");
+                fprintf(file, "\tidiv ebx\n");
+                fprintf(file, "\tmov rax, rdx\n\n");
+            }
+            break;
+        case Equals:
+            trad_instr(file, node->firstChild, table);
+            fprintf(file, "\tpush rax\n");
+            trad_instr(file, node->firstChild->nextSibling, table);
+            fprintf(file, "\tpush rax\n");
+            fprintf(file, "\tpop rbx\n");
+            fprintf(file, "\tpop rax\n");
+            fprintf(file, "\tcmp rax, rbx\n\n");
             break;
         case Asignment:
             trad_assignment(file, node, table);
@@ -259,8 +277,6 @@ int trad_text(FILE* file, Node* node) {
         for (instr = corp->firstChild->nextSibling->firstChild; instr != NULL; instr = instr->nextSibling) {
             trad_instr(file, instr, &(function->u.symbol_tab));
         }
-
-        // fprintf(file, "\tmov rax, 60\n\tmov rdi, 0\n\tsyscall\n");
     }
 
     return 1;
