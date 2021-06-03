@@ -78,6 +78,7 @@ void printTree(Node *node) {
         case AddSub:
         case DivStar:
         case Struct:
+        case Func:
         case Identifier:
             printf(": %s", node->u.identifier);
             break;

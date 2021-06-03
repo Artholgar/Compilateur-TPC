@@ -300,6 +300,7 @@ F   :  ADDSUB F                                     {
                                                     }
     |  IDENT '(' Arguments  ')'                     {   
                                                         $$ = $1;
+                                                        $$->kind = Func;
                                                         addChild($1, $3);
                                                     }
     ;

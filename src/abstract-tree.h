@@ -8,6 +8,7 @@
         NODE(IntLiteral) \
         NODE(CharLiteral) \
         NODE(Identifier) \
+        NODE(Func) \
         NODE(If) \
         NODE(Else) \
         NODE(While) \

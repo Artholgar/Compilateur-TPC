@@ -120,26 +120,52 @@ int trad_variable(FILE* file, Node* node, SymbolTable* table) {
     return size;
 }
 
+int trad_identifier(FILE* file, Node* node, SymbolTable* table) {
+    TableType* type = NULL;
+    TableEntry* Lval = NULL;
+
+    if (checkTable(&Lval, table, node->u.identifier)) {
+        // Quand il ne s'agit pas d'une structure entière.
+        if (!(checkType(&type, table, Lval->type)) || node->firstChild != NULL) {
+
+            fprintf(file, "\tmov ");
+
+            if (strcmp(Lval->type, "int") == 0) {
+                fprintf(file, "eax, ");
+            } else {
+                fprintf(file, "ax, ");
+            }
+
+            trad_variable(file, node, table);
+            fprintf(file, "\n\n");
+
+        } else {
+            ;
+        }
+    }
+
+    return 1;
+}
+
 int trad_assignment(FILE* file, Node* node, SymbolTable* table) {
     TableEntry* Lval = NULL;
-    TableEntry* Rval = NULL;
     TableType* type = NULL;
 
     if (checkTable(&Lval, table, node->firstChild->u.identifier)) {
         // Quand il ne s'agit pas d'une structure entière.
         if (!(checkType(&type, table, Lval->type)) || node->firstChild->firstChild != NULL) {
-            // On traduit d'abord ce qu'il y a a gauche
-            if (checkTable(&Rval, table, node->firstChild->nextSibling->u.identifier)) {
-                // on traduit l'instruction, et on met le resultat dans rax
-                trad_instr(file, node->firstChild->nextSibling, table);
-                fprintf(file, "\tmov rax, ");
-                trad_variable(file, node->firstChild->nextSibling, table);
-                fprintf(file, "\n");
-            }
-
+            // On traduit d'abord ce qu'il y a a droite
+            // on traduit l'instruction, et on met le resultat dans rax
+            trad_instr(file, node->firstChild->nextSibling, table);
+            fprintf(file, "\txor rax, rax\n");
             fprintf(file, "\tmov ");
             trad_variable(file, node->firstChild, table);
-            fprintf(file, ", rax\n");
+            if (strcmp(Lval->type, "int") == 0) {
+                fprintf(file, ", eax\n");
+            } else {
+                fprintf(file, ", ax\n");
+            }
+
         } else {
             ;
         }
@@ -149,12 +175,57 @@ int trad_assignment(FILE* file, Node* node, SymbolTable* table) {
 
 int trad_instr(FILE* file, Node* node, SymbolTable* table) {
     switch (node->kind) {
+        case IntLiteral:
+            fprintf(file, "\txor rax, rax\n");
+            fprintf(file, "\tmov eax, %d\n", node->u.integer);
+            break;
+        case CharLiteral:
+            fprintf(file, "\txor rax, rax\n");
+            fprintf(file, "\tmov ax, '%c'\n", node->u.character);
+            break;
         case Identifier:
+            trad_identifier(file, node, table);
+            break;
+        case AddSub:
+            trad_instr(file, node->firstChild, table);
+            fprintf(file, "\tpush rax\n");
+            trad_instr(file, node->firstChild->nextSibling, table);
+            fprintf(file, "\tpush rax\n");
+            fprintf(file, "\tpop rbx\n\n");
+            fprintf(file, "\tpop rax\n\n");
+
+            if (strcmp(node->u.identifier, "+") == 0) {
+                fprintf(file, "\tadd eax, ebx\n\n");
+            }
+            else {
+                fprintf(file, "\tsub eax, ebx\n\n");
+            }
             
+            break;
+        case DivStar:
+            trad_instr(file, node->firstChild, table);
+            fprintf(file, "\tpush rax\n");
+            trad_instr(file, node->firstChild->nextSibling, table);
+            fprintf(file, "\tpush rax\n");
+            fprintf(file, "\tpop rbx\n\n");
+            fprintf(file, "\tpop rax\n\n");
+            fprintf(file, "\timul eax, ebx\n\n");
             break;
         case Asignment:
             trad_assignment(file, node, table);
             break;
+        case Return:
+            trad_instr(file, node->firstChild, table);
+
+            fprintf(file, "\tpop rbp\n\n");
+
+            if (strcmp(table->name, "main") == 0) {
+                fprintf(file, "\tmov rdi, rax\n");
+                fprintf(file, "\tmov rax, 60\n");
+                fprintf(file, "\tsyscall\n");
+            } else {
+                fprintf(file, "\tret\n");
+            }
 
         default:
             break;
@@ -181,7 +252,7 @@ int trad_text(FILE* file, Node* node) {
 
         fprintf(file, "\tpush rbp\n\tmov rbp, rsp\n");
 
-        fprintf(file, "\tsub rsp, %d\n", function->u.symbol_tab.stsize);
+        fprintf(file, "\tsub rsp, %d\n\n", function->u.symbol_tab.stsize);
 
         corp = function->firstChild->nextSibling;
 
