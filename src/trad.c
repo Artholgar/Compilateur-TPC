@@ -120,6 +120,20 @@ int trad_variable(FILE* file, Node* node, SymbolTable* table) {
     return size;
 }
 
+int trad_assignment(FILE* file, Node* node, SymbolTable* table) {
+    TableEntry* Lval = NULL;
+    TableType* type = NULL;
+    if (checkTable(&Lval, table, node->firstChild->u.identifier)) {
+        if (!(checkType(&type, table, Lval->type)) || node->firstChild->firstChild != NULL) {
+            fprintf(file, "\tmov ");
+            trad_variable(file, node->firstChild, table);
+            fprintf(file, ", ");
+            fprintf(file, "\n");
+        }
+    }
+    return 1;
+}
+
 int trad_text(FILE* file, Node* node) {
     TableFunc* current_func;
     Node* function;
@@ -144,10 +158,7 @@ int trad_text(FILE* file, Node* node) {
 
         for (instr = corp->firstChild->nextSibling->firstChild; instr != NULL; instr = instr->nextSibling) {
             if (instr->kind == Asignment) {
-                fprintf(file, "\tmov ");
-                trad_variable(file, instr->firstChild, &(function->u.symbol_tab));
-                fprintf(file, ", ");
-                fprintf(file, "\n");
+                trad_assignment(file, instr, &(function->u.symbol_tab));
             }
         }
 
