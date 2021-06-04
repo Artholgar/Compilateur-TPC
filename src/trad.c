@@ -301,16 +301,28 @@ int trad_instr(FILE* file, Node* node, SymbolTable* table) {
             trad_instr(file, node->firstChild->nextSibling, table);
             fprintf(file, "L%d:\n", end_label);
             break;
+        case Not:
+            trad_instr(file, node->firstChild, table);
+            fprintf(file, "\tcmp rax, 0\n");
+            false_label = labelno;
+            labelno += 1;
+            fprintf(file, "\tjne L%d\n", false_label);
+            fprintf(file, "\tmov rax, 1\n");
+            end_label = labelno;
+            labelno += 1;
+            fprintf(file, "L%d:\n", false_label);
+            fprintf(file, "\tmov rax, 0\n");
+            fprintf(file, "L%d:\n", end_label);
+            break;
         case If:
             trad_instr(file, node->firstChild, table);
             fprintf(file, "\tcmp rax, 0\n");
-            end_label = labelno;
-            labelno += 1;
-            fprintf(file, "\tjne L%d\n", end_label); 
             false_label = labelno;
             labelno += 1;
-            fprintf(file, "\tjmp L%d\n", false_label); 
+            fprintf(file, "\tje L%d\n", false_label); 
             trad_instr(file, node->firstChild->nextSibling, table);
+            end_label = labelno;
+            labelno += 1;
             fprintf(file, "\tjmp L%d\n", end_label); 
 
             fprintf(file, "L%d:\n", false_label);
@@ -352,7 +364,6 @@ int trad_text(FILE* file, Node* node) {
     TableFunc* current_func;
     Node* function;
     Node* corp;
-    Node* instr;
 
     fprintf(file, "section .text\n");
 
