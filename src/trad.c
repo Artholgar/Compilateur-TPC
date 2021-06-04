@@ -10,6 +10,8 @@ int trad_to_nasm(char* name, Node* node) {
     fprintf(file, "section .data\n");
     fprintf(file, "\tformat_int db '%%d', 10, 0\n");
     fprintf(file, "\tformat_char db '%%c', 10, 0\n");
+    fprintf(file, "\tformat_read_int db '%%d', 0\n");
+    fprintf(file, "\tformat_read_char db '%%c', 0\n");
 
     fprintf(file, "\n");
 
@@ -80,12 +82,35 @@ int trad_bss(FILE* file, SymbolTable symb_tab) {
     return 1;
 }
 
+int trad_adresse(FILE* file, Node* node, SymbolTable* table) {
+    TableEntry* entry = NULL;
+    TableType* type = NULL;
+    TableChamp* champ = NULL;
+    char name[MAXNAME];
+
+    if (checkTable(&entry, table, node->u.identifier)) {
+        checkType(&type, table, entry->type);
+        checkChamp(&champ, type, node->firstChild->u.identifier);
+        if (isGlobal(table, node->u.identifier) == 1) {
+            fprintf(file, "%s", entry->identifier);
+        } else {
+            fprintf(file, "rbp + %ld", entry->offset);
+        }
+        if (NULL != champ) {
+            strcpy(name, type->name);
+            // remove 'struct ' from type name
+            memmove(name, name + 7, strlen(name));
+            fprintf(file, " + %s.%s", name, champ->name);
+        }
+    }
+    return 1;
+}
+
 int trad_variable(FILE* file, Node* node, SymbolTable* table) {
     TableEntry* entry = NULL;
     TableType* type = NULL;
     TableChamp* champ = NULL;
     size_t size;
-    char name[MAXNAME];
 
     if (checkTable(&entry, table, node->u.identifier)) {
         if (strcmp(entry->type, "int") == 0) {
@@ -111,17 +136,7 @@ int trad_variable(FILE* file, Node* node, SymbolTable* table) {
             }
         }
         fprintf(file, "[");
-        if (isGlobal(table, node->u.identifier) == 1) {
-            fprintf(file, "%s", entry->identifier);
-        } else {
-            fprintf(file, "rbp + %ld", entry->offset);
-        }
-        if (NULL != champ) {
-            strcpy(name, type->name);
-            // remove 'struct ' from type name
-            memmove(name, name + 7, strlen(name));
-            fprintf(file, " + %s.%s", name, champ->name);
-        }
+        trad_adresse(file, node, table);
         fprintf(file, "]");
     }
 
@@ -221,8 +236,7 @@ int trad_instr(FILE* file, Node* node, SymbolTable* table) {
             fprintf(file, "\txor rax, rax\n");
             if (node->u.character == '\n') {
                 fprintf(file, "\tmov ax, 10\n");
-            }
-            else {
+            } else {
                 fprintf(file, "\tmov ax, '%c'\n", node->u.character);
             }
             return 1;
@@ -391,6 +405,20 @@ int trad_instr(FILE* file, Node* node, SymbolTable* table) {
             fprintf(file, "\tmov rsi, %d\n", size);
             fprintf(file, "\tcall print\n");
             break;
+        case Reade:
+            fprintf(file, "\tmov rax, ");
+            trad_adresse(file, node->firstChild, table);
+            fprintf(file, "\n");
+            fprintf(file, "\tmov rdi, rax\n");
+            fprintf(file, "\tcall reade\n");
+            break;
+        case Readc:
+            fprintf(file, "\tmov rax, ");
+            trad_adresse(file, node->firstChild, table);
+            fprintf(file, "\n");
+            fprintf(file, "\tmov rdi, rax\n");
+            fprintf(file, "\tcall readc\n");
+            break;
 
         default:
             break;
@@ -401,7 +429,6 @@ int trad_instr(FILE* file, Node* node, SymbolTable* table) {
 
 int print(FILE* file) {
     int char_label, end_label;
-
 
     char_label = labelno;
     labelno += 1;
@@ -433,6 +460,46 @@ int print(FILE* file) {
     return 1;
 }
 
+int reade(FILE* file) {
+    fprintf(file, "reade :\n");
+    fprintf(file, "\tpush rbp\n");
+    fprintf(file, "\tmov rbp, rsp\n");
+
+    fprintf(file, "\tmov rsi, rdi\n");
+
+    fprintf(file, "\tmov rdi, format_read_int\n");
+
+    fprintf(file, "\tmov rax, 0\n");
+    fprintf(file, "\tmov r14, rsp\n");
+    fprintf(file, "\tand rsp, -16\n");
+    fprintf(file, "\tcall scanf\n");
+    fprintf(file, "\tmov rsp, r14\n");
+
+    fprintf(file, "\tpop rbp\n");
+    fprintf(file, "\tret\n");
+    return 1;
+}
+
+int readc(FILE* file) {
+    fprintf(file, "readc :\n");
+    fprintf(file, "\tpush rbp\n");
+    fprintf(file, "\tmov rbp, rsp\n");
+
+    fprintf(file, "\tmov rsi, rdi\n");
+
+    fprintf(file, "\tmov rdi, format_read_char\n");
+
+    fprintf(file, "\tmov rax, 0\n");
+    fprintf(file, "\tmov r14, rsp\n");
+    fprintf(file, "\tand rsp, -16\n");
+    fprintf(file, "\tcall scanf\n");
+    fprintf(file, "\tmov rsp, r14\n");
+
+    fprintf(file, "\tpop rbp\n");
+    fprintf(file, "\tret\n");
+    return 1;
+}
+
 int trad_text(FILE* file, Node* node) {
     TableFunc* current_func;
     Node* function;
@@ -448,10 +515,19 @@ int trad_text(FILE* file, Node* node) {
     fprintf(file, "global reade\n");
     fprintf(file, "global readc\n");
     fprintf(file, "extern printf\n");
+    fprintf(file, "extern scanf\n");
 
     fprintf(file, "\n");
 
     print(file);
+
+    fprintf(file, "\n");
+
+    reade(file);
+
+    fprintf(file, "\n");
+
+    readc(file);
 
     for (function = node->firstChild->nextSibling; function != NULL; function = function->nextSibling) {
         fprintf(file, "\n");
