@@ -194,6 +194,10 @@ int trad_assignment(FILE* file, Node* node, SymbolTable* table) {
 int trad_instr(FILE* file, Node* node, SymbolTable* table) {
     int true_label, false_label, end_label;
 
+    if (node == NULL) {
+        return 1;
+    }
+
     switch (node->kind) {
         case IntLiteral:
             fprintf(file, "\txor rax, rax\n");
@@ -250,7 +254,19 @@ int trad_instr(FILE* file, Node* node, SymbolTable* table) {
             fprintf(file, "\tcmp rax, rbx\n");
 
             true_label = labelno;
-            fprintf(file, "\tje L%d\n", true_label); 
+            if (strcmp(node->u.identifier, "==") == 0) {
+                fprintf(file, "\tje L%d\n", true_label); 
+            } else if (strcmp(node->u.identifier, "!=") == 0) {
+                fprintf(file, "\tjne L%d\n", true_label); 
+            } else if (strcmp(node->u.identifier, "<") == 0) {
+                fprintf(file, "\tjl L%d\n", true_label); 
+            } else if (strcmp(node->u.identifier, "<=") == 0) {
+                fprintf(file, "\tjle L%d\n", true_label); 
+            } else if (strcmp(node->u.identifier, ">") == 0) {
+                fprintf(file, "\tjg L%d\n", true_label); 
+            } else if (strcmp(node->u.identifier, ">=") == 0) {
+                fprintf(file, "\tjge L%d\n", true_label); 
+            }
             labelno += 1;
             false_label = labelno;
             fprintf(file, "L%d:\n", false_label);
@@ -279,6 +295,7 @@ int trad_instr(FILE* file, Node* node, SymbolTable* table) {
             } else {
                 fprintf(file, "\tret\n");
             }
+            break;
 
         default:
             break;
