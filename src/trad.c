@@ -282,10 +282,20 @@ int trad_instr(FILE* file, Node* node, SymbolTable* table) {
             break;
         case And:
             trad_instr(file, node->firstChild, table);
-            fprintf(file, "\tcmp rax, 1\n");
-            true_label = labelno;
+            fprintf(file, "\tcmp rax, 0\n");
+            end_label = labelno;
             labelno += 1;
-            fprintf(file, "\tje L%d\n", true_label); 
+            fprintf(file, "\tje L%d\n", end_label); 
+
+            trad_instr(file, node->firstChild->nextSibling, table);
+            fprintf(file, "L%d:\n", end_label);
+            break;
+        case Or:
+            trad_instr(file, node->firstChild, table);
+            fprintf(file, "\tcmp rax, 1\n");
+            end_label = labelno;
+            labelno += 1;
+            fprintf(file, "\tje L%d\n", end_label); 
             false_label = labelno;
             labelno += 1;
             fprintf(file, "L%d:\n", false_label);
@@ -304,7 +314,7 @@ int trad_instr(FILE* file, Node* node, SymbolTable* table) {
             fprintf(file, "\tmov rax, 0\n");
             fprintf(file, "\tjmp L%d\n", end_label);
             fprintf(file, "L%d:\n", end_label);
-            
+            break;
         case Asignment:
             trad_assignment(file, node, table);
             break;
