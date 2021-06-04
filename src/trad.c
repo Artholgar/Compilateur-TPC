@@ -132,6 +132,7 @@ int trad_identifier(FILE* file, Node* node, SymbolTable* table) {
     TableType* type = NULL;
     TableEntry* Lval = NULL;
     TableChamp* champ = NULL;
+    int size = 0;
 
     if (checkTable(&Lval, table, node->u.identifier)) {
         // Quand il ne s'agit pas d'une structure entière.
@@ -141,14 +142,18 @@ int trad_identifier(FILE* file, Node* node, SymbolTable* table) {
 
             if (strcmp(Lval->type, "int") == 0) {
                 fprintf(file, "eax, ");
+                size = 4;
             } else if (strcmp(Lval->type, "char") == 0) {
                 fprintf(file, "al, ");
+                size = 1;
             } else {
                 checkChamp(&champ, type, node->firstChild->u.identifier);
                 if (strcmp(champ->type, "int") == 0) {
                     fprintf(file, "eax, ");
+                    size = 4;
                 } else if (strcmp(champ->type, "char") == 0) {
                     fprintf(file, "al, ");
+                    size = 1;
                 }
             }
 
@@ -160,7 +165,7 @@ int trad_identifier(FILE* file, Node* node, SymbolTable* table) {
         }
     }
 
-    return 1;
+    return size;
 }
 
 int trad_assignment(FILE* file, Node* node, SymbolTable* table) {
@@ -200,6 +205,7 @@ int trad_assignment(FILE* file, Node* node, SymbolTable* table) {
 int trad_instr(FILE* file, Node* node, SymbolTable* table) {
     int true_label, false_label, end_label;
     Node* instr;
+    int size;
 
     if (node == NULL) {
         return 1;
@@ -209,6 +215,7 @@ int trad_instr(FILE* file, Node* node, SymbolTable* table) {
         case IntLiteral:
             fprintf(file, "\txor rax, rax\n");
             fprintf(file, "\tmov eax, %d\n", node->u.integer);
+            return 4;
             break;
         case CharLiteral:
             fprintf(file, "\txor rax, rax\n");
@@ -218,10 +225,10 @@ int trad_instr(FILE* file, Node* node, SymbolTable* table) {
             else {
                 fprintf(file, "\tmov ax, '%c'\n", node->u.character);
             }
-            
+            return 1;
             break;
         case Identifier:
-            trad_identifier(file, node, table);
+            return trad_identifier(file, node, table);
             break;
         case AddSub:
             trad_instr(file, node->firstChild, table);
@@ -236,7 +243,6 @@ int trad_instr(FILE* file, Node* node, SymbolTable* table) {
             } else {
                 fprintf(file, "\tsub eax, ebx\n\n");
             }
-
             break;
         case DivStar:
             trad_instr(file, node->firstChild, table);
@@ -380,8 +386,9 @@ int trad_instr(FILE* file, Node* node, SymbolTable* table) {
             }
             break;
         case Print:
-            trad_instr(file, node->firstChild, table);
+            size = trad_instr(file, node->firstChild, table);
             fprintf(file, "\tmov rdi, rax\n");
+            fprintf(file, "\tmov rsi, %d\n", size);
             fprintf(file, "\tcall print\n");
             break;
 
@@ -389,16 +396,35 @@ int trad_instr(FILE* file, Node* node, SymbolTable* table) {
             break;
     }
 
-    return 1;
+    return 4;
 }
 
 int print(FILE* file) {
+    int char_label, end_label;
+
+
+    char_label = labelno;
+    labelno += 1;
+    end_label = labelno;
+    labelno += 1;
+
     fprintf(file, "print :\n");
     fprintf(file, "\tpush rbp\n");
     fprintf(file, "\tmov rbp, rsp\n");
 
+    fprintf(file, "\tmov rax, rsi\n");
     fprintf(file, "\tmov rsi, rdi\n");
+
+    fprintf(file, "\tcmp rax, 4\n");
+    fprintf(file, "\tjne L%d\n", char_label);
+
     fprintf(file, "\tmov rdi, format_int\n");
+    fprintf(file, "\tjmp L%d\n", end_label);
+
+    fprintf(file, "L%d:\n", char_label);
+    fprintf(file, "\tmov rdi, format_char\n");
+
+    fprintf(file, "L%d:\n", end_label);
     fprintf(file, "\tmov rax, 0\n");
     fprintf(file, "\tcall printf\n");
 
