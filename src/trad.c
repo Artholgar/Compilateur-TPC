@@ -193,6 +193,7 @@ int trad_assignment(FILE* file, Node* node, SymbolTable* table) {
 
 int trad_instr(FILE* file, Node* node, SymbolTable* table) {
     int true_label, false_label, end_label;
+    Node* instr;
 
     if (node == NULL) {
         return 1;
@@ -300,6 +301,25 @@ int trad_instr(FILE* file, Node* node, SymbolTable* table) {
             trad_instr(file, node->firstChild->nextSibling, table);
             fprintf(file, "L%d:\n", end_label);
             break;
+        case If:
+            trad_instr(file, node->firstChild, table);
+            fprintf(file, "\tcmp rax, 0\n");
+            end_label = labelno;
+            labelno += 1;
+            fprintf(file, "\tjne L%d\n", end_label); 
+            false_label = labelno;
+            labelno += 1;
+            fprintf(file, "\tjmp L%d\n", false_label); 
+            trad_instr(file, node->firstChild->nextSibling, table);
+            fprintf(file, "\tjmp L%d\n", end_label); 
+
+            fprintf(file, "L%d:\n", false_label);
+            trad_instr(file, node->firstChild->nextSibling->nextSibling, table);
+            fprintf(file, "L%d:\n", end_label);
+            printf("%d\n", end_label);
+            break;
+        case Else:
+            trad_instr(file, node->firstChild, table);
         case Asignment:
             trad_assignment(file, node, table);
             break;
@@ -316,6 +336,10 @@ int trad_instr(FILE* file, Node* node, SymbolTable* table) {
                 fprintf(file, "\tret\n");
             }
             break;
+        case SuiteInstr:
+            for (instr = node->firstChild; instr != NULL; instr = instr->nextSibling) {
+            trad_instr(file, instr, table);
+        }
 
         default:
             break;
@@ -346,9 +370,11 @@ int trad_text(FILE* file, Node* node) {
 
         corp = function->firstChild->nextSibling;
 
-        for (instr = corp->firstChild->nextSibling->firstChild; instr != NULL; instr = instr->nextSibling) {
-            trad_instr(file, instr, &(function->u.symbol_tab));
-        }
+        trad_instr(file, corp->firstChild->nextSibling, &(function->u.symbol_tab));
+
+        // for (instr = corp->firstChild->nextSibling->firstChild; instr != NULL; instr = instr->nextSibling) {
+        //     trad_instr(file, instr, &(function->u.symbol_tab));
+        // }
     }
 
     return 1;
