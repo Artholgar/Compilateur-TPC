@@ -326,9 +326,8 @@ Arguments:
     ;
 ListExp:
        ListExp ',' Exp                              {   
-                                                        $$ = makeNode(ListExp);
-                                                        addChild($$, $1);
-                                                        addChild($$, $3);
+                                                        $$ = $1;
+                                                        addSibling($$, $3);
                                                     }
     |  Exp                                          {   
                                                         $$ = $1;

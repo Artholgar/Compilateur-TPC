@@ -217,6 +217,76 @@ int trad_assignment(FILE* file, Node* node, SymbolTable* table) {
     return 1;
 }
 
+int trad_func_call(FILE* file, Node* node, SymbolTable* table) {
+    Node* current_param = NULL;
+    TableEntry* current_param_entry;
+    int compteur = 1;
+    int cmp_stack = 0;
+
+    for (current_param = node->firstChild; current_param != NULL; current_param = current_param->nextSibling) {
+        trad_instr(file, current_param, table);
+        switch (compteur) {
+            case rdi:
+                fprintf(file, "\tmov rdi, rax\n");
+                break;
+            case rsi:
+                fprintf(file, "\tmov rsi, rax\n");
+                break;
+            case rdx:
+                fprintf(file, "\tmov rdx, rax\n");
+                break;
+            case rcx:
+                fprintf(file, "\tmov rcx, rax\n");
+                break;
+            case r8:
+                fprintf(file, "\tmov r8, rax\n");
+                break;
+            case r9:
+                fprintf(file, "\tmov r9, rax\n");
+                break;
+            default:
+                fprintf(file, "\tpush rax\n");
+                cmp_stack += 8;
+                break;
+        }
+        compteur += 1;
+        // if (checkTable(&current_param_entry, table, current_param->u.identifier)) {
+        //     trad_instr(file, current_param, table);
+
+        //     switch (-current_param_entry->offset) {
+        //         case rdi:
+        //             fprintf(file, "mov rdi, rax\n");
+        //             break;
+        //         case rsi:
+        //             fprintf(file, "mov rsi, rax\n");
+        //             break;
+        //         case rdx:
+        //             fprintf(file, "mov rdx, rax\n");
+        //             break;
+        //         case rcx:
+        //             fprintf(file, "mov rcx, rax\n");
+        //             break;
+        //         case r8:
+        //             fprintf(file, "mov r8, rax\n");
+        //             break;
+        //         case r9:
+        //             fprintf(file, "mov r9, rax\n");
+        //             break;
+        //         default:
+        //             fprintf(file, "mov [");
+        //             trad_adresse(file, current_param, table);
+        //             fprintf(file, "], rax\n");
+        //     }
+        // }
+    }
+    fprintf(file, "\tcall %s\n", node->u.identifier);
+    while (cmp_stack != 0) {
+        fprintf(file, "\tpop rax\n");
+        cmp_stack -= 8;
+    }
+    return 1;
+}
+
 int trad_instr(FILE* file, Node* node, SymbolTable* table) {
     int true_label, false_label, end_label;
     Node* instr;
@@ -418,6 +488,9 @@ int trad_instr(FILE* file, Node* node, SymbolTable* table) {
             fprintf(file, "\n");
             fprintf(file, "\tmov rdi, rax\n");
             fprintf(file, "\tcall readc\n");
+            break;
+        case Func:
+            trad_func_call(file, node, table);
             break;
 
         default:

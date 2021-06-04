@@ -28,7 +28,7 @@ void Print_table(SymbolTable table) {
 
     while (current_type != NULL) {
         printf("\t%d - %s\n", current_type->size, current_type->name);
-        
+
         for (TableChamp *current_champ = current_type->champs; current_champ != NULL; current_champ = current_champ->next) {
             printf("\t\t%s - %s\n", current_champ->type, current_champ->name);
         }
@@ -41,7 +41,7 @@ void Print_table(SymbolTable table) {
 
     while (current_func != NULL) {
         printf("\t%d - %s\n", current_func->size, current_func->name);
-        
+
         current_func = current_func->next;
     }
 
@@ -67,7 +67,7 @@ void Print_table(SymbolTable table) {
     }
 }
 
-int checkTable(TableEntry** entry, SymbolTable *table, const char name[]) {
+int checkTable(TableEntry **entry, SymbolTable *table, const char name[]) {
     TableEntry *current;
 
     if (NULL == table) {
@@ -103,8 +103,7 @@ int isGlobal(SymbolTable *table, const char name[]) {
         if (strcmp(current->identifier, name) == 0) {
             if (strcmp(table->name, "Global") == 0) {
                 return 1;
-            }
-            else {
+            } else {
                 return 0;
             }
         }
@@ -113,7 +112,7 @@ int isGlobal(SymbolTable *table, const char name[]) {
     return 0;
 }
 
-int checkType(TableType** type, SymbolTable *table, const char name[]) {
+int checkType(TableType **type, SymbolTable *table, const char name[]) {
     TableType *current;
 
     if (NULL == table) {
@@ -134,7 +133,7 @@ int checkType(TableType** type, SymbolTable *table, const char name[]) {
     return 0;
 }
 
-int checkChamp(TableChamp** champ, TableType *type, const char name[]) {
+int checkChamp(TableChamp **champ, TableType *type, const char name[]) {
     TableChamp *current;
 
     if (NULL == type) {
@@ -153,9 +152,22 @@ int checkChamp(TableChamp** champ, TableType *type, const char name[]) {
     return 0;
 }
 
+int count_params(SymbolTable *table) {
+    TableEntry *current = NULL;
+    int count = 0;
+
+    for (current = table->array; current != NULL; current = current->next) {
+        if (current->kind == Parameter) {
+            count += 1;
+        }
+    }
+    return count;
+}
+
 void addVar(SymbolTable *table, const char name[], char *type, Kind_Val kind) {
     TableEntry *new;
-    TableType* new_type;
+    TableType *new_type;
+    int count_param;
 
     if (checkTable(NULL, table, name)) {
         fprintf(stderr, "Error : redefinition de la variable %s\n", name);
@@ -167,28 +179,51 @@ void addVar(SymbolTable *table, const char name[], char *type, Kind_Val kind) {
         exit(3);
     }
 
+    count_param = count_params(table);
+
     new->next = table->array;
     table->array = new;
 
     strcpy(table->array->identifier, name);
     strcpy(table->array->type, type);
     table->array->kind = kind;
-    new->offset = table->stsize;
+    if (kind == Parameter && count_param <= 5) {
+        new->offset = -count_param - 1;
+
+    } else {
+        new->offset = table->stsize;
+    }
 
     if (strcmp(type, "int") == 0) {
-        table->stsize += 4;
-        new->size = 4;
-    }
-    else if (strcmp(type, "char") == 0) {
-        table->stsize += 1;
-        new->size = 1;
-    }
-    else {
-        if (checkType(&new_type, table, type) == 1) {
-            table->stsize += new_type->size;
-            new->size = new_type->size;
+        if (kind == Parameter) {
+            if (count_param > 5) {
+                table->stsize += 8;
+            }
+        } else {
+            table->stsize += 4;
         }
-        else {
+        new->size = 4;
+    } else if (strcmp(type, "char") == 0) {
+        if (kind == Parameter) {
+            if (count_param > 5) {
+                table->stsize += 8;
+            }
+        } else {
+            table->stsize += 1;
+        }
+        new->size = 1;
+    } else {
+        if (checkType(&new_type, table, type) == 1) {
+            if (kind == Parameter) {
+                if (count_param > 5) {
+                    table->stsize += 8;
+                }
+            } else {
+                table->stsize += new_type->size;
+            }
+
+            new->size = new_type->size;
+        } else {
             // erreur sémantique, a toi de jouer Thomas !!
             ;
         }
@@ -197,7 +232,7 @@ void addVar(SymbolTable *table, const char name[], char *type, Kind_Val kind) {
 
 void addFunc(SymbolTable *table, const char name[], char *type) {
     TableFunc *new;
-    TableType* new_type;
+    TableType *new_type;
 
     if (NULL == (new = (TableFunc *)malloc(sizeof(TableFunc)))) {
         perror("malloc");
@@ -212,15 +247,12 @@ void addFunc(SymbolTable *table, const char name[], char *type) {
 
     if (strcmp(type, "int") == 0) {
         new->size = 4;
-    }
-    else if (strcmp(type, "char") == 0) {
+    } else if (strcmp(type, "char") == 0) {
         new->size = 1;
-    }
-    else {
+    } else {
         if (checkType(&new_type, table, type) == 1) {
             new->size = new_type->size;
-        }
-        else {
+        } else {
             // erreur sémantique, a toi de jouer Thomas !!
             ;
         }

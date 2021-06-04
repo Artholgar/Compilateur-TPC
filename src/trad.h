@@ -8,6 +8,16 @@
 #include <stdlib.h>
 #include <string.h>
 
+typedef enum {
+    not_register,
+    rdi,
+    rsi,
+    rdx,
+    rcx,
+    r8,
+    r9
+} registre;
+
 int trad_to_nasm(char* name, Node* node);
 
 FILE* create_nasm_file(char* name);
