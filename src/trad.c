@@ -7,6 +7,12 @@ int trad_to_nasm(char* name, Node* node) {
     file = create_nasm_file(name);
     trad_struct(file, node->u.symbol_tab.types);
 
+    fprintf(file, "section .data\n");
+    fprintf(file, "\tformat_int db '%%d', 10, 0\n");
+    fprintf(file, "\tformat_char db '%%c', 10, 0\n");
+
+    fprintf(file, "\n");
+
     trad_bss(file, node->u.symbol_tab);
 
     trad_text(file, node);
@@ -206,7 +212,13 @@ int trad_instr(FILE* file, Node* node, SymbolTable* table) {
             break;
         case CharLiteral:
             fprintf(file, "\txor rax, rax\n");
-            fprintf(file, "\tmov ax, '%c'\n", node->u.character);
+            if (node->u.character == '\n') {
+                fprintf(file, "\tmov ax, 10\n");
+            }
+            else {
+                fprintf(file, "\tmov ax, '%c'\n", node->u.character);
+            }
+            
             break;
         case Identifier:
             trad_identifier(file, node, table);
@@ -256,17 +268,17 @@ int trad_instr(FILE* file, Node* node, SymbolTable* table) {
 
             true_label = labelno;
             if (strcmp(node->u.identifier, "==") == 0) {
-                fprintf(file, "\tje L%d\n", true_label); 
+                fprintf(file, "\tje L%d\n", true_label);
             } else if (strcmp(node->u.identifier, "!=") == 0) {
-                fprintf(file, "\tjne L%d\n", true_label); 
+                fprintf(file, "\tjne L%d\n", true_label);
             } else if (strcmp(node->u.identifier, "<") == 0) {
-                fprintf(file, "\tjl L%d\n", true_label); 
+                fprintf(file, "\tjl L%d\n", true_label);
             } else if (strcmp(node->u.identifier, "<=") == 0) {
-                fprintf(file, "\tjle L%d\n", true_label); 
+                fprintf(file, "\tjle L%d\n", true_label);
             } else if (strcmp(node->u.identifier, ">") == 0) {
-                fprintf(file, "\tjg L%d\n", true_label); 
+                fprintf(file, "\tjg L%d\n", true_label);
             } else if (strcmp(node->u.identifier, ">=") == 0) {
-                fprintf(file, "\tjge L%d\n", true_label); 
+                fprintf(file, "\tjge L%d\n", true_label);
             }
             labelno += 1;
             false_label = labelno;
@@ -286,7 +298,7 @@ int trad_instr(FILE* file, Node* node, SymbolTable* table) {
             fprintf(file, "\tcmp rax, 0\n");
             end_label = labelno;
             labelno += 1;
-            fprintf(file, "\tje L%d\n", end_label); 
+            fprintf(file, "\tje L%d\n", end_label);
 
             trad_instr(file, node->firstChild->nextSibling, table);
             fprintf(file, "L%d:\n", end_label);
@@ -296,7 +308,7 @@ int trad_instr(FILE* file, Node* node, SymbolTable* table) {
             fprintf(file, "\tcmp rax, 0\n");
             end_label = labelno;
             labelno += 1;
-            fprintf(file, "\tjne L%d\n", end_label); 
+            fprintf(file, "\tjne L%d\n", end_label);
 
             trad_instr(file, node->firstChild->nextSibling, table);
             fprintf(file, "L%d:\n", end_label);
@@ -319,19 +331,33 @@ int trad_instr(FILE* file, Node* node, SymbolTable* table) {
             fprintf(file, "\tcmp rax, 0\n");
             false_label = labelno;
             labelno += 1;
-            fprintf(file, "\tje L%d\n", false_label); 
+            fprintf(file, "\tje L%d\n", false_label);
             trad_instr(file, node->firstChild->nextSibling, table);
             end_label = labelno;
             labelno += 1;
-            fprintf(file, "\tjmp L%d\n", end_label); 
+            fprintf(file, "\tjmp L%d\n", end_label);
 
             fprintf(file, "L%d:\n", false_label);
             trad_instr(file, node->firstChild->nextSibling->nextSibling, table);
             fprintf(file, "L%d:\n", end_label);
-            printf("%d\n", end_label);
             break;
         case Else:
             trad_instr(file, node->firstChild, table);
+            break;
+        case While:
+            true_label = labelno;
+            labelno += 1;
+            fprintf(file, "L%d:\n", true_label);
+            trad_instr(file, node->firstChild, table);
+            fprintf(file, "\tcmp rax, 0\n");
+            end_label = labelno;
+            labelno += 1;
+            fprintf(file, "\tje L%d\n", end_label);
+            trad_instr(file, node->firstChild->nextSibling, table);
+            fprintf(file, "\tjmp L%d\n", true_label);
+            fprintf(file, "L%d:\n", end_label);
+
+            break;
         case Asignment:
             trad_assignment(file, node, table);
             break;
@@ -350,13 +376,34 @@ int trad_instr(FILE* file, Node* node, SymbolTable* table) {
             break;
         case SuiteInstr:
             for (instr = node->firstChild; instr != NULL; instr = instr->nextSibling) {
-            trad_instr(file, instr, table);
-        }
+                trad_instr(file, instr, table);
+            }
+            break;
+        case Print:
+            trad_instr(file, node->firstChild, table);
+            fprintf(file, "\tmov rdi, rax\n");
+            fprintf(file, "\tcall print\n");
+            break;
 
         default:
             break;
     }
 
+    return 1;
+}
+
+int print(FILE* file) {
+    fprintf(file, "print :\n");
+    fprintf(file, "\tpush rbp\n");
+    fprintf(file, "\tmov rbp, rsp\n");
+
+    fprintf(file, "\tmov rsi, rdi\n");
+    fprintf(file, "\tmov rdi, format_int\n");
+    fprintf(file, "\tmov rax, 0\n");
+    fprintf(file, "\tcall printf\n");
+
+    fprintf(file, "\tpop rbp\n");
+    fprintf(file, "\tret\n");
     return 1;
 }
 
@@ -370,6 +417,15 @@ int trad_text(FILE* file, Node* node) {
     for (current_func = node->u.symbol_tab.func; current_func != NULL; current_func = current_func->next) {
         fprintf(file, "global %s\n", current_func->name);
     }
+
+    fprintf(file, "global print\n");
+    fprintf(file, "global reade\n");
+    fprintf(file, "global readc\n");
+    fprintf(file, "extern printf\n");
+
+    fprintf(file, "\n");
+
+    print(file);
 
     for (function = node->firstChild->nextSibling; function != NULL; function = function->nextSibling) {
         fprintf(file, "\n");

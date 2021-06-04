@@ -279,8 +279,11 @@ T   :  T DIVSTAR F                                  {
                                                     }
     ;
 F   :  ADDSUB F                                     {   
-                                                        $$ = $1;
-                                                        addChild($$, $2);
+                                                        $$ = $2;
+                                                        if (strcmp($1->u.identifier, "-") == 0) {
+                                                            printf("%s\n", $1->u.identifier);
+                                                            $$->u.integer = -$$->u.integer;
+                                                        }
                                                     }
     |  '!' F                                        {   
                                                         $$ = makeNode(Not);
