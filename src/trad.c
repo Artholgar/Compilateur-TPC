@@ -1,6 +1,7 @@
 #include "trad.h"
 
 int labelno = 0;
+int bytes_to_drop = 0;
 
 int trad_to_nasm(char* name, Node* node) {
     FILE* file;
@@ -116,8 +117,7 @@ int trad_adresse(FILE* file, Node* node, SymbolTable* table) {
                         fprintf(file, "rbp + %d + 16", entry->offset);
                         break;
                 }
-            }
-            else {
+            } else {
                 fprintf(file, "rbp - %d - %ld", -entry->offset, entry->size);
             }
         }
@@ -181,6 +181,7 @@ int trad_identifier(FILE* file, Node* node, SymbolTable* table) {
     TableEntry* Lval = NULL;
     TableChamp* champ = NULL;
     int size = 0;
+    char name[MAXNAME];
 
     if (checkTable(&Lval, table, node->u.identifier)) {
         // Quand il ne s'agit pas d'une structure entière.
@@ -212,7 +213,32 @@ int trad_identifier(FILE* file, Node* node, SymbolTable* table) {
             fprintf(file, "\n\n");
 
         } else {
-            ;
+            strcpy(name, type->name);
+            // remove 'struct ' from type name
+            memmove(name, name + 7, strlen(name));
+
+            fprintf(file, "\tmov rbx, rsp\n");
+            bytes_to_drop += type->size;
+            fprintf(file, "\tsub rsp, %d\n", type->size);
+
+            for (champ = type->champs; champ != NULL; champ = champ->next) {
+                if (isGlobal(table, node->u.identifier) == 1) {
+                    if (champ->size == 4) {
+                        fprintf(file, "\tmov eax, dword [%s - %d + %s.%s]\n", Lval->identifier, type->size, name, champ->name);
+                        fprintf(file, "\tmov dword [rsp], eax\n");
+                    } else {
+                        fprintf(file, "\tmov al, byte [%s - %d + %s.%s]\n", Lval->identifier, type->size, name, champ->name);
+                    }
+                } else {
+                    if (champ->size == 4) {
+                        fprintf(file, "\tmov eax, dword [rbp - %d - %d + %s.%s]\n", -Lval->offset, type->size, name, champ->name);
+                    } else {
+                        fprintf(file, "\tmov al, byte [rbp - %d - %d + %s.%s]\n", -Lval->offset, type->size, name, champ->name);
+                    }
+                }
+            }
+
+            fprintf(file, "\tmov rax, rbx\n");
         }
     }
 
