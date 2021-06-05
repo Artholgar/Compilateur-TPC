@@ -94,7 +94,29 @@ int trad_adresse(FILE* file, Node* node, SymbolTable* table) {
         if (isGlobal(table, node->u.identifier) == 1) {
             fprintf(file, "%s", entry->identifier);
         } else {
-            fprintf(file, "rbp + %ld", entry->offset);
+            switch (-entry->offset) {
+                case rdi:
+                    fprintf(file, "rdi");
+                    break;
+                case rsi:
+                    fprintf(file, "rsi");
+                    break;
+                case rdx:
+                    fprintf(file, "rdx");
+                    break;
+                case rcx:
+                    fprintf(file, "rcx");
+                    break;
+                case r8:
+                    fprintf(file, "r8");
+                    break;
+                case r9:
+                    fprintf(file, "r9");
+                    break;
+                default:
+                    fprintf(file, "rbp - %d - %ld", entry->offset, entry->size);
+                    break;
+            }
         }
         if (NULL != champ) {
             strcpy(name, type->name);
@@ -113,31 +135,39 @@ int trad_variable(FILE* file, Node* node, SymbolTable* table) {
     size_t size;
 
     if (checkTable(&entry, table, node->u.identifier)) {
-        if (strcmp(entry->type, "int") == 0) {
-            fprintf(file, "dword ");
-            size = 4;
-        } else if (strcmp(entry->type, "char") == 0) {
-            fprintf(file, "byte ");
-            size = 1;
-        } else {
-            if (node->firstChild != NULL) {
-                checkType(&type, table, entry->type);
-                checkChamp(&champ, type, node->firstChild->u.identifier);
-
-                if (strcmp(champ->type, "int") == 0) {
-                    fprintf(file, "dword ");
-                    size = 4;
-                } else if (strcmp(champ->type, "char") == 0) {
-                    fprintf(file, "byte ");
-                    size = 1;
-                }
+        if (entry->offset >= 0) {
+            if (entry->size == 8) {
+                fprintf(file, "qword ");
+                size = 8;
+            } else if (entry->size == 4) {
+                fprintf(file, "dword ");
+                size = 4;
+            } else if (entry->size == 1) {
+                fprintf(file, "byte ");
+                size = 1;
             } else {
-                ;
+                if (node->firstChild != NULL) {
+                    checkType(&type, table, entry->type);
+                    checkChamp(&champ, type, node->firstChild->u.identifier);
+
+                    if (strcmp(champ->type, "int") == 0) {
+                        fprintf(file, "dword ");
+                        size = 4;
+                    } else if (strcmp(champ->type, "char") == 0) {
+                        fprintf(file, "byte ");
+                        size = 1;
+                    }
+                } else {
+                    ;
+                }
             }
+            fprintf(file, "[");
+            trad_adresse(file, node, table);
+            fprintf(file, "]");
+        } else {
+            trad_adresse(file, node, table);
+            size = 8;
         }
-        fprintf(file, "[");
-        trad_adresse(file, node, table);
-        fprintf(file, "]");
     }
 
     return size;
@@ -155,10 +185,13 @@ int trad_identifier(FILE* file, Node* node, SymbolTable* table) {
             fprintf(file, "\txor rax, rax\n");
             fprintf(file, "\tmov ");
 
-            if (strcmp(Lval->type, "int") == 0) {
+            if (Lval->size == 8) {
+                fprintf(file, "rax, ");
+                size = 8;
+            } else if (Lval->size == 4) {
                 fprintf(file, "eax, ");
                 size = 4;
-            } else if (strcmp(Lval->type, "char") == 0) {
+            } else if (Lval->size == 1) {
                 fprintf(file, "al, ");
                 size = 1;
             } else {
@@ -187,6 +220,7 @@ int trad_assignment(FILE* file, Node* node, SymbolTable* table) {
     TableEntry* Lval = NULL;
     TableType* type = NULL;
     TableChamp* champ = NULL;
+    int size;
 
     if (checkTable(&Lval, table, node->firstChild->u.identifier)) {
         // Quand il ne s'agit pas d'une structure entière.
@@ -196,10 +230,13 @@ int trad_assignment(FILE* file, Node* node, SymbolTable* table) {
             trad_instr(file, node->firstChild->nextSibling, table);
 
             fprintf(file, "\tmov ");
-            trad_variable(file, node->firstChild, table);
-            if (strcmp(Lval->type, "int") == 0) {
+            size = trad_variable(file, node->firstChild, table);
+
+            if (size == 8) {
+                fprintf(file, ", rax\n");
+            } else if (size == 4) {
                 fprintf(file, ", eax\n");
-            } else if (strcmp(Lval->type, "char") == 0) {
+            } else if (size == 1) {
                 fprintf(file, ", al\n");
             } else {
                 checkChamp(&champ, type, node->firstChild->firstChild->u.identifier);
@@ -219,7 +256,6 @@ int trad_assignment(FILE* file, Node* node, SymbolTable* table) {
 
 int trad_func_call(FILE* file, Node* node, SymbolTable* table) {
     Node* current_param = NULL;
-    TableEntry* current_param_entry;
     int compteur = 1;
     int cmp_stack = 0;
 
@@ -250,38 +286,10 @@ int trad_func_call(FILE* file, Node* node, SymbolTable* table) {
                 break;
         }
         compteur += 1;
-        // if (checkTable(&current_param_entry, table, current_param->u.identifier)) {
-        //     trad_instr(file, current_param, table);
-
-        //     switch (-current_param_entry->offset) {
-        //         case rdi:
-        //             fprintf(file, "mov rdi, rax\n");
-        //             break;
-        //         case rsi:
-        //             fprintf(file, "mov rsi, rax\n");
-        //             break;
-        //         case rdx:
-        //             fprintf(file, "mov rdx, rax\n");
-        //             break;
-        //         case rcx:
-        //             fprintf(file, "mov rcx, rax\n");
-        //             break;
-        //         case r8:
-        //             fprintf(file, "mov r8, rax\n");
-        //             break;
-        //         case r9:
-        //             fprintf(file, "mov r9, rax\n");
-        //             break;
-        //         default:
-        //             fprintf(file, "mov [");
-        //             trad_adresse(file, current_param, table);
-        //             fprintf(file, "], rax\n");
-        //     }
-        // }
     }
     fprintf(file, "\tcall %s\n", node->u.identifier);
     while (cmp_stack != 0) {
-        fprintf(file, "\tpop rax\n");
+        fprintf(file, "\tpop rbx\n");
         cmp_stack -= 8;
     }
     return 1;
@@ -454,6 +462,8 @@ int trad_instr(FILE* file, Node* node, SymbolTable* table) {
         case Return:
             trad_instr(file, node->firstChild, table);
 
+            fprintf(file, "\tadd rsp, %d\n\n", table->stsize);
+
             fprintf(file, "\tpop rbp\n\n");
 
             if (strcmp(table->name, "main") == 0) {
@@ -526,7 +536,10 @@ int print(FILE* file) {
 
     fprintf(file, "L%d:\n", end_label);
     fprintf(file, "\tmov rax, 0\n");
+    fprintf(file, "\tmov r14, rsp\n");
+    fprintf(file, "\tand rsp, -16\n");
     fprintf(file, "\tcall printf\n");
+    fprintf(file, "\tmov rsp, r14\n");
 
     fprintf(file, "\tpop rbp\n");
     fprintf(file, "\tret\n");

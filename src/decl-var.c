@@ -47,7 +47,7 @@ void Print_table(SymbolTable table) {
 
     printf("%s - size = %d :\n", table.name, table.stsize);
     while (current != NULL) {
-        printf("\t%ld - ", current->offset);
+        printf("\t%d - ", current->offset);
         switch (current->kind) {
             case Variable:
                 printf("Variable - ");
@@ -62,7 +62,7 @@ void Print_table(SymbolTable table) {
             default:
                 break;
         }
-        printf("%s %s\n", current->type, current->identifier);
+        printf("%ld %s %s\n", current->size, current->type, current->identifier);
         current = current->next;
     }
 }
@@ -188,7 +188,7 @@ void addVar(SymbolTable *table, const char name[], char *type, Kind_Val kind) {
     strcpy(table->array->type, type);
     table->array->kind = kind;
     if (kind == Parameter && count_param <= 5) {
-        new->offset = -count_param - 1;
+        new->offset = (-1) - count_param;
 
     } else {
         new->offset = table->stsize;
@@ -199,19 +199,23 @@ void addVar(SymbolTable *table, const char name[], char *type, Kind_Val kind) {
             if (count_param > 5) {
                 table->stsize += 8;
             }
+            new->size = 8;
         } else {
             table->stsize += 4;
+            new->size = 4;
         }
-        new->size = 4;
+        
     } else if (strcmp(type, "char") == 0) {
         if (kind == Parameter) {
             if (count_param > 5) {
                 table->stsize += 8;
             }
+            new->size = 8;
         } else {
             table->stsize += 1;
+            new->size = 1;
         }
-        new->size = 1;
+        
     } else {
         if (checkType(&new_type, table, type) == 1) {
             if (kind == Parameter) {

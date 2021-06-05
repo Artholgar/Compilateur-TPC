@@ -19,7 +19,8 @@ typedef struct entry{
     char identifier[MAXNAME];
     char type[MAXNAME];
     Kind_Val kind;
-    size_t offset;  // Offset in bytes.
+    int on_stack;
+    int offset;  // Offset in bytes.
     size_t size;
     struct entry *next;
 } TableEntry;
