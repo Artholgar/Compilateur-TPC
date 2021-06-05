@@ -145,12 +145,13 @@ void addVar(SymbolTable *table, const char name[], char *type, Kind_Val kind) {
         }
         else {
             // erreur sémantique, a toi de jouer Thomas !!
+            // le type écrit n'existe pas
             ;
         }
     }
 }
 
-void addFunc(SymbolTable *table, const char name[], char *type) {
+void addFunc(SymbolTable *table, const char name[], char *type) {  
     TableFunc *new;
     TableType new_type;
 
@@ -177,7 +178,10 @@ void addFunc(SymbolTable *table, const char name[], char *type) {
         }
         else {
             // erreur sémantique, a toi de jouer Thomas !!
+            //la fonction n'existe pas
             ;
         }
     }
 }
+
+
