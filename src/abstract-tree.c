@@ -253,3 +253,271 @@ void addType(Node *node, SymbolTable *table, const char name[]) {
         table->types->size += max - (table->types->size % max);
     }
 }
+
+
+int researchValueReturn(SymbolTable * table, char * name, char type[MAXNAME]){
+    TableFunc * current;
+    
+    if(table == NULL){
+        return 0;
+    }
+    
+    current = table->func;
+
+    while (current != NULL) {
+        if (strcmp(current->name, name) == 0) {
+            strcpy(type, current->type);
+            return 1;
+        }
+        current = current->next;
+    }
+    return 0;
+}
+
+int researchMain(SymbolTable * table){
+    TableFunc * current;
+    
+    if(table == NULL){
+        return 0;
+    }
+    
+    current = table->func;
+
+    while (current != NULL) {
+        if (strcmp(current->name, "main") == 0) {
+            return 1;
+        }
+        current = current->next;
+    }
+    return 0;
+}
+
+int researchVar(SymbolTable * symbol_tab, char * name, char var[MAXNAME]){
+    TableEntry *current;
+    if(symbol_tab == NULL){
+        return 0;
+    }
+    
+    if (researchVar(symbol_tab->parent, name, var)) {
+        return 1;
+    }
+
+    current = symbol_tab->array;
+
+    while (current != NULL) {
+        if (strcmp(current->identifier, name) == 0) {
+            strcpy(var, current->type);
+            return 1;
+        }
+        current = current->next;
+    }
+    return 0;
+}
+
+int TestType(Node * node, SymbolTable * symbol_tab, char var[MAXNAME], char type[MAXNAME]){
+    TableType * current;
+    TableChamp * tmp;
+    
+    
+    current = symbol_tab->parent->types;
+
+    while (current != NULL) {
+        if (strcmp(current->name, var) == 0) {
+            tmp = current->champs;
+            while (tmp != NULL) {
+                if(strcmp(tmp->name, node->u.identifier) == 0){
+                    strcpy(type, tmp->type);
+                    return 1;
+                }
+                tmp = tmp->next;
+            }
+            fprintf(stderr, "Semantic Error : the field of struct isn't exist\n");
+            exit(2); 
+        }
+        current = current->next;
+    }
+    return 0;
+    
+}
+
+int reasearchType(Node * fils, Node * frere, SymbolTable * symbol_tab, char var[MAXNAME]){
+    char type [MAXNAME];
+    
+    if(researchVar(symbol_tab, fils->u.identifier, type) == 0){
+                    fprintf(stderr, "Semantic Error : the variable isn't exist \n");
+                    exit(2);
+                }
+    printf("le type est %s\n", type);
+    
+    if (TestType(frere, symbol_tab, type, var) == 0){
+        fprintf(stderr, "Semantic Error : the variable isn't exist \n");
+        exit(2);
+    }
+    
+    return 0;
+}
+
+int TestVar(Node * node, SymbolTable symbol_tab, char var[MAXNAME]){
+    char tmp[MAXNAME] = "";
+    
+    if (NULL == node) 
+        return 0;
+
+    switch(node->kind){
+        case Identifier : 
+            if(researchVar(&symbol_tab, node->u.identifier, tmp) == 0){
+                fprintf(stderr, "Semantic Error : the variable isn't exist 2\n");
+                exit(EXIT_FAILURE);
+            }
+            if(strcmp(tmp, var) != 0 && strcmp(var, "char") == 0){
+                
+                fprintf(stderr, "Warning : you affect char for a int1\n");
+            }
+            break;
+        
+        case AddSub : 
+        case DivStar : 
+            TestVar(node->firstChild, symbol_tab, var);
+            TestVar(node->firstChild->nextSibling, symbol_tab, var);
+            break;
+        
+        case LValue :
+            reasearchType(node->firstChild, node->firstChild->nextSibling, &symbol_tab, tmp);
+            if(strcmp(tmp, var) != 0 && strcmp(var, "char") == 0)
+                fprintf(stderr, "Warning : you affect char for a int2\n");
+            break;
+        
+        case IntLiteral:
+            if(strcmp(var, "char") == 0)
+                fprintf(stderr, "Warning : you affect char for a int2\n");
+        case CharLiteral:
+        default :
+            break;
+    }
+    return 0;
+}
+
+
+void SemanticErrorAux(Node * node, SymbolTable symbol_tab){
+    char var[MAXNAME];
+    
+    if (NULL == node) {
+        return;
+    }
+
+    switch (node->kind) {
+        case Corps :
+            SemanticErrorAux(node->firstChild->nextSibling, symbol_tab); //rentre dans SuiteInstr
+            break;
+        
+        case SuiteInstr :
+            for (Node *child = node->firstChild; child != NULL; child = child->nextSibling) {
+                SemanticErrorAux(child, symbol_tab);
+            }
+            break;
+        
+        case Asignment :
+            printf("ident %s\n", node->firstChild->u.identifier);
+            if(node->firstChild->kind == LValue){
+                reasearchType(node->firstChild->firstChild, node->firstChild->firstChild->nextSibling, &symbol_tab, var);
+            }
+            
+            else{
+                if(researchVar(&symbol_tab, node->firstChild->u.identifier, var) == 0){
+                    fprintf(stderr, "Semantic Error : the variable isn't exist 1\n");
+                    exit(EXIT_FAILURE);
+                }
+            }
+            TestVar(node->firstChild->nextSibling, symbol_tab, var);
+            break;
+
+        case LValue :
+
+            break;
+        
+        
+        case If :
+        case AddSub:
+        case DivStar:
+        case While :
+        case Or :
+        case And :
+        case Equals :
+        case Compare :
+            SemanticErrorAux(node->firstChild, symbol_tab);
+            SemanticErrorAux(node->firstChild->nextSibling, symbol_tab);
+            break;
+        
+        case Identifier :
+            printf("ident %s\n", node->u.identifier);
+            if(researchVar(&symbol_tab, node->u.identifier, var) == 0){
+                fprintf(stderr, "Semantic Error : the variable isn't exist 1\n");
+                exit(EXIT_FAILURE);
+            }
+            break;
+        
+        case Return :
+            if(researchValueReturn(symbol_tab.parent, symbol_tab.name, var) == 0){
+                fprintf(stderr, "Semantic Error : the function isn't exist\n");
+                exit(EXIT_FAILURE);
+            }
+
+            if(strcmp(symbol_tab.name, "main") == 0 && strcmp(var, "int") != 0){
+                fprintf(stderr, "Semantic Error : the function main must return integer\n");
+                exit(EXIT_FAILURE);
+            }
+
+            TestVar(node->firstChild, symbol_tab, var);
+            break;
+
+        case Readc : //lit un caractere
+        case Else :
+        case Print :
+            SemanticErrorAux(node->firstChild, symbol_tab);
+            break;
+        
+    
+        case Reade : //lit un entier 
+            if(researchVar(&symbol_tab, node->firstChild->u.identifier, var) == 0){
+                fprintf(stderr, "Semantic Error : the variable isn't exist 1\n");
+                exit(EXIT_FAILURE);
+            }
+            if(strcmp(var, "char") == 0)
+                fprintf(stderr, "Warning : you affect char for a int\n");
+            break;
+
+        case IntLiteral:
+        case CharLiteral:
+        case Type:
+        case Struct:
+        default:
+            break;
+    }
+}
+
+
+void readSemanticError(Node *node){
+    if (NULL == node) {
+        return;
+    }
+
+    switch (node->kind) {
+        case Prog :
+            if(researchMain(&(node->u.symbol_tab)) == 0){
+                fprintf(stderr, "Error : the funtion main doesn't exist");
+                exit(EXIT_FAILURE);
+            }
+            readSemanticError(node->firstChild->nextSibling);
+            break;
+        
+        case DeclFonct :
+            SemanticErrorAux(node->firstChild->nextSibling, node->u.symbol_tab);  //va directement a corp
+            printf("première fonction\n");
+            readSemanticError(node->nextSibling); //plusieurs fonction
+            break;
+        
+        default :
+            break;
+    }
+}
+
