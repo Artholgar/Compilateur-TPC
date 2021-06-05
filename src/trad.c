@@ -8,10 +8,8 @@ int trad_to_nasm(char* name, Node* node) {
     trad_struct(file, node->u.symbol_tab.types);
 
     fprintf(file, "section .data\n");
-    fprintf(file, "\tformat_int db '%%d', 10, 0\n");
-    fprintf(file, "\tformat_char db '%%c', 10, 0\n");
-    fprintf(file, "\tformat_read_int db '%%d', 0\n");
-    fprintf(file, "\tformat_read_char db '%%c', 0\n");
+    fprintf(file, "\tformat_int db '%%d', 0\n");
+    fprintf(file, "\tformat_char db '%%c', 0\n");
 
     fprintf(file, "\n");
 
@@ -561,7 +559,7 @@ int reade(FILE* file) {
 
     fprintf(file, "\tmov rsi, rdi\n");
 
-    fprintf(file, "\tmov rdi, format_read_int\n");
+    fprintf(file, "\tmov rdi, format_int\n");
 
     fprintf(file, "\tmov rax, 0\n");
     fprintf(file, "\tmov r14, rsp\n");
@@ -581,7 +579,7 @@ int readc(FILE* file) {
 
     fprintf(file, "\tmov rsi, rdi\n");
 
-    fprintf(file, "\tmov rdi, format_read_char\n");
+    fprintf(file, "\tmov rdi, format_char\n");
 
     fprintf(file, "\tmov rax, 0\n");
     fprintf(file, "\tmov r14, rsp\n");
