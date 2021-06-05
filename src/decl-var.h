@@ -15,11 +15,22 @@ typedef enum {
     Parameter
 } Kind_Val;
 
+typedef enum {
+    not_register,
+    rdi,
+    rsi,
+    rdx,
+    rcx,
+    r8,
+    r9
+} Register;
+
 typedef struct entry{
     char identifier[MAXNAME];
     char type[MAXNAME];
     Kind_Val kind;
     int on_stack;
+    Register reg;
     int offset;  // Offset in bytes.
     size_t size;
     struct entry *next;

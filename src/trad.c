@@ -94,28 +94,33 @@ int trad_adresse(FILE* file, Node* node, SymbolTable* table) {
         if (isGlobal(table, node->u.identifier) == 1) {
             fprintf(file, "%s", entry->identifier);
         } else {
-            switch (-entry->offset) {
-                case rdi:
-                    fprintf(file, "rdi");
-                    break;
-                case rsi:
-                    fprintf(file, "rsi");
-                    break;
-                case rdx:
-                    fprintf(file, "rdx");
-                    break;
-                case rcx:
-                    fprintf(file, "rcx");
-                    break;
-                case r8:
-                    fprintf(file, "r8");
-                    break;
-                case r9:
-                    fprintf(file, "r9");
-                    break;
-                default:
-                    fprintf(file, "rbp - %d - %ld", entry->offset, entry->size);
-                    break;
+            if (entry->kind == Parameter) {
+                switch (entry->reg) {
+                    case rdi:
+                        fprintf(file, "rdi");
+                        break;
+                    case rsi:
+                        fprintf(file, "rsi");
+                        break;
+                    case rdx:
+                        fprintf(file, "rdx");
+                        break;
+                    case rcx:
+                        fprintf(file, "rcx");
+                        break;
+                    case r8:
+                        fprintf(file, "r8");
+                        break;
+                    case r9:
+                        fprintf(file, "r9");
+                        break;
+                    default:
+                        fprintf(file, "rbp + %d + 16", entry->offset);
+                        break;
+                }
+            }
+            else {
+                fprintf(file, "rbp - %d - %ld", -entry->offset, entry->size);
             }
         }
         if (NULL != champ) {
@@ -135,7 +140,7 @@ int trad_variable(FILE* file, Node* node, SymbolTable* table) {
     size_t size;
 
     if (checkTable(&entry, table, node->u.identifier)) {
-        if (entry->offset >= 0) {
+        if (entry->on_stack == 1) {
             if (entry->size == 8) {
                 fprintf(file, "qword ");
                 size = 8;
@@ -482,6 +487,9 @@ int trad_instr(FILE* file, Node* node, SymbolTable* table) {
         case Print:
             size = trad_instr(file, node->firstChild, table);
             fprintf(file, "\tmov rdi, rax\n");
+            if (size == 8) {
+                size = 4;
+            }
             fprintf(file, "\tmov rsi, %d\n", size);
             fprintf(file, "\tcall print\n");
             break;

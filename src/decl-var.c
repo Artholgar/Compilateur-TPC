@@ -187,41 +187,41 @@ void addVar(SymbolTable *table, const char name[], char *type, Kind_Val kind) {
     strcpy(table->array->identifier, name);
     strcpy(table->array->type, type);
     table->array->kind = kind;
-    if (kind == Parameter && count_param <= 5) {
-        new->offset = (-1) - count_param;
-
+    new->on_stack = 1;
+    if (kind == Parameter) {
+        if (count_param <= 5) {
+            new->offset = 0;
+            new->on_stack = 0;
+            new->reg = count_param + 1;
+        }
+        else {
+            new->offset = ((count_param - 6) * 8);
+            new->reg = count_param + 1;
+        }
     } else {
-        new->offset = table->stsize;
+        new->offset = -table->stsize;
     }
 
     if (strcmp(type, "int") == 0) {
         if (kind == Parameter) {
-            if (count_param > 5) {
-                table->stsize += 8;
-            }
             new->size = 8;
         } else {
             table->stsize += 4;
             new->size = 4;
         }
-        
+
     } else if (strcmp(type, "char") == 0) {
         if (kind == Parameter) {
-            if (count_param > 5) {
-                table->stsize += 8;
-            }
             new->size = 8;
         } else {
             table->stsize += 1;
             new->size = 1;
         }
-        
+
     } else {
         if (checkType(&new_type, table, type) == 1) {
             if (kind == Parameter) {
-                if (count_param > 5) {
-                    table->stsize += 8;
-                }
+                ;
             } else {
                 table->stsize += new_type->size;
             }
