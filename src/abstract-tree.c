@@ -427,9 +427,9 @@ void SemanticErrorAux(Node * node, SymbolTable symbol_tab){
             }
             TestVar(node->firstChild->nextSibling, symbol_tab, var);
             break;
-
+        
         case LValue :
-
+            reasearchType(node->firstChild, node->firstChild->nextSibling, &symbol_tab, var);
             break;
         
         
