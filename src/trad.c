@@ -125,7 +125,7 @@ int trad_adresse(FILE* file, Node* node, SymbolTable* table) {
             strcpy(name, type->name);
             // remove 'struct ' from type name
             memmove(name, name + 7, strlen(name));
-            fprintf(file, " + %s.%s", name, champ->name);
+            fprintf(file, " - %s.%s", name, champ->name);
         }
     }
     return 1;
