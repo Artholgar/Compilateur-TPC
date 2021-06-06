@@ -588,4 +588,3 @@ void readSemanticError(Node *node){
             break;
     }
 }
-
