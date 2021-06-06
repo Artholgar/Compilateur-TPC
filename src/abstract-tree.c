@@ -414,8 +414,16 @@ int TestVar(Node * node, SymbolTable symbol_tab, char var[MAXNAME]){
         
         case IntLiteral:
             if(strcmp(var, "char") == 0)
-                fprintf(stderr, "Warning : you affect char for a int2\n");
+                fprintf(stderr, "Warning : you affect char for a int1\n");
+        
         case CharLiteral:
+            if(strcmp(var, "char") != 0 && strcmp(var, "int") != 0 ){
+                    fprintf(stderr, "Semantic Error : the variable can't be affect\n");
+                    exit(2);
+                }
+            break;
+        
+        
         default :
             break;
     }
@@ -442,8 +450,6 @@ void SemanticErrorAux(Node * node, SymbolTable symbol_tab){
             break;
         
         
-        case Equals :
-        case Compare :
         case Asignment :
             printf("ident %s\n", node->firstChild->u.identifier);
             if(node->firstChild->firstChild != NULL){
@@ -462,9 +468,13 @@ void SemanticErrorAux(Node * node, SymbolTable symbol_tab){
                 }
             }
             
+            printf("la valeur assigné est %s\n", var);
             TestVar(node->firstChild->nextSibling, symbol_tab, var);
             break;
-    
+
+
+        case Equals :
+        case Compare :
         case If :
         case While :
         case Or :
@@ -484,26 +494,26 @@ void SemanticErrorAux(Node * node, SymbolTable symbol_tab){
             else{
                 if(researchVar(&symbol_tab, node->u.identifier, var) == 0){
                     fprintf(stderr, "Semantic Error : the variable isn't exist 1\n");
-                    exit(EXIT_FAILURE);
+                    exit(2);
                 }
             }
             
-            if(researchVar(&symbol_tab, node->u.identifier, var) == 0){
-                fprintf(stderr, "Semantic Error : the variable isn't exist 1\n");
-                exit(EXIT_FAILURE);
+            if(strcmp(var, "char") != 0 && strcmp(var, "int") != 0 ){
+                fprintf(stderr, "Semantic Error : the variable can't be affect\n");
+                exit(2);
             }
-
+    
             break;
         
         case Return :
             if(researchValueReturn(symbol_tab.parent, symbol_tab.name, var) == 0){
                 fprintf(stderr, "Semantic Error : the function isn't exist\n");
-                exit(EXIT_FAILURE);
+                exit(2);
             }
 
             if(strcmp(symbol_tab.name, "main") == 0 && strcmp(var, "int") != 0){
                 fprintf(stderr, "Semantic Error : the function main must return integer\n");
-                exit(EXIT_FAILURE);
+                exit(2);
             }
 
             TestVar(node->firstChild, symbol_tab, var);
@@ -518,7 +528,7 @@ void SemanticErrorAux(Node * node, SymbolTable symbol_tab){
             else{
                 if(researchVar(&symbol_tab, node->firstChild->u.identifier, var) == 0){
                     fprintf(stderr, "Semantic Error : the variable isn't exist 1\n");
-                    exit(EXIT_FAILURE);
+                    exit(2);
                 }
             }
 
@@ -542,7 +552,7 @@ void SemanticErrorAux(Node * node, SymbolTable symbol_tab){
             else{
                 if(researchVar(&symbol_tab, node->firstChild->u.identifier, var) == 0){
                     fprintf(stderr, "Semantic Error : the variable isn't exist 1\n");
-                    exit(EXIT_FAILURE);
+                    exit(2);
                 }
             }
 

@@ -164,16 +164,52 @@ int count_params(SymbolTable *table) {
     return count;
 }
 
+int checkVar(SymbolTable * table, const char name[]) {
+    TableEntry * current;
+    
+    if (NULL == table || table->parent == NULL) {
+        return 0;
+    }
+    
+    current = table->parent->array;
+
+    while (current != NULL) {
+        if (strcmp(current->identifier, name) == 0) {
+            return 1;
+        }
+        current = current->next;
+    }
+    return 0;
+}
+
+int checkFunc(SymbolTable * table, const char name[]) {
+    TableFunc * current;
+    
+    if (NULL == table) {
+        return 0;
+    }
+    
+    current = table->func;
+
+    while (current != NULL) {
+        if (strcmp(current->name, name) == 0) {
+            return 1;
+        }
+        current = current->next;
+    }
+    return 0;
+}
+
 void addVar(SymbolTable *table, const char name[], char *type, Kind_Val kind) {
     TableEntry *new;
     TableType *new_type;
     int count_param;
 
-    if (checkTable(NULL, table, name)) {
+    if (checkVar(table, name)) {
         fprintf(stderr, "Error : redefinition de la variable %s\n", name);
-        exit(EXIT_FAILURE);
+        exit(2);
     }
-
+    
     if (NULL == (new = (TableEntry *)malloc(sizeof(TableEntry)))) {
         perror("malloc");
         exit(3);
@@ -239,6 +275,11 @@ void addFunc(SymbolTable *table, const char name[], char *type) {
     TableFunc *new;
     TableType *new_type;
 
+    if (checkFunc(table, name)) {
+        fprintf(stderr, "Error : the function %s already exist \n", name);
+        exit(2);
+    }
+    
     if (NULL == (new = (TableFunc *)malloc(sizeof(TableFunc)))) {
         perror("malloc");
         exit(3);
