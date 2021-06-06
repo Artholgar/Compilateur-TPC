@@ -62,7 +62,7 @@ void printTree(Node *node) {
         0) {  // 2514 = up and right; 2500 = horiz; 251c = vertical and right
         printf(rightmost[depth] ? "\u2514\u2500\u2500 " : "\u251c\u2500\u2500 ");
     }
-    printf("%s - %d", StringFromKind[node->kind], node->lineno);
+    printf("%s", StringFromKind[node->kind]);
     switch (node->kind) {
         case IntLiteral:
             printf(": %d", node->u.integer);
@@ -185,13 +185,23 @@ void addFunc(Node *node, SymbolTable *table) {
 
             if (strcmp(type, "int") == 0) {
                 strcpy(tmp, "int");
+                new_champ->size = 4;
             } else if (strcmp(type, "char") == 0) {
                 strcpy(tmp, "char");
+                new_champ->size = 1;
             } else if (strcmp(type, "void") == 0) {
                 strcpy(tmp, "void");
+                new_champ->size = 0;
             } else {
                 strcpy(tmp, "struct ");
-                strcat(tmp, node->firstChild->u.identifier);
+                strcat(tmp, type);
+                if (checkType(&new_type, table, tmp)) {
+                    new_champ->size = new_type->size;
+                } else {
+                    fprintf(stderr, "Error : unknown type %s\n", tmp);
+                    exit(2);
+                    //le type du paramètre n'existe pas
+                }
             }
 
             strcpy(new_champ->name, current_param->firstChild->u.identifier);
@@ -337,25 +347,6 @@ void addType(Node *node, SymbolTable *table, const char name[]) {
     }
 }
 
-int researchValueReturn(SymbolTable *table, char *name, char type[MAXNAME]) {
-    TableFunc *current;
-
-    if (table == NULL) {
-        return 0;
-    }
-
-    current = table->func;
-
-    while (current != NULL) {
-        if (strcmp(current->name, name) == 0) {
-            strcpy(type, current->type);
-            return 1;
-        }
-        current = current->next;
-    }
-    return 0;
-}
-
 int researchMain(SymbolTable *table) {
     TableFunc *current;
 
@@ -370,136 +361,6 @@ int researchMain(SymbolTable *table) {
             return 1;
         }
         current = current->next;
-    }
-    return 0;
-}
-
-int researchVar(SymbolTable *symbol_tab, char *name, char var[MAXNAME]) {
-    TableEntry *current;
-    if (symbol_tab == NULL) {
-        return 0;
-    }
-
-    if (researchVar(symbol_tab->parent, name, var)) {
-        return 1;
-    }
-
-    current = symbol_tab->array;
-
-    while (current != NULL) {
-        if (strcmp(current->identifier, name) == 0) {
-            strcpy(var, current->type);
-            return 1;
-        }
-        current = current->next;
-    }
-    return 0;
-}
-
-int TestType(Node *node, SymbolTable *symbol_tab, char var[MAXNAME], char type[MAXNAME]) {
-    TableType *current;
-    TableChamp *tmp;
-
-    current = symbol_tab->parent->types;
-
-    while (current != NULL) {
-        if (strcmp(current->name, var) == 0) {
-            tmp = current->champs;
-            while (tmp != NULL) {
-                if (strcmp(tmp->name, node->u.identifier) == 0) {
-                    strcpy(type, tmp->type);
-                    return 1;
-                }
-                tmp = tmp->next;
-            }
-            fprintf(stderr, "Semantic Error : the field of struct doesn't exist\n");
-            exit(2);
-        }
-        current = current->next;
-    }
-    return 0;
-}
-
-int reasearchType(Node *fils, Node *frere, SymbolTable *symbol_tab, char var[MAXNAME]) {
-    char type[MAXNAME];
-
-    if (researchVar(symbol_tab, fils->u.identifier, type) == 0) {
-        fprintf(stderr, "Semantic Error : the variable doesn't exist \n");
-        exit(2);
-    }
-    printf("le type est %s\n", type);
-
-    if (TestType(frere, symbol_tab, type, var) == 0) {
-        fprintf(stderr, "Semantic Error : the variable doesn't exist 5\n");
-        exit(2);
-    }
-    return 0;
-}
-
-int TestVar(Node *node, SymbolTable symbol_tab, char var[MAXNAME]) {
-    char tmp[MAXNAME] = "";
-
-    if (NULL == node)
-        return 0;
-
-    switch (node->kind) {
-        case Identifier:
-
-            if (node->firstChild != NULL) {
-                reasearchType(node, node->firstChild, &symbol_tab, tmp);
-            }
-
-            else {
-                if (researchVar(&symbol_tab, node->u.identifier, tmp) == 0) {
-                    fprintf(stderr, "Semantic Error : the variable isn't exist 2\n");
-                    exit(2);
-                }
-            }
-
-            if (strcmp(var, "int") == 0) {
-                if (strcmp(tmp, "char") != 0 && strcmp(tmp, "int") != 0) {
-                    fprintf(stderr, "Semantic Error : the variable can't be affect\n");
-                    exit(2);
-                }
-            }
-
-            else if (strcmp(var, "char") == 0) {
-                if (strcmp(tmp, "int") == 0)
-                    fprintf(stderr, "Warning : you affect char for a int1\n");
-                if (strcmp(tmp, "char") != 0 && strcmp(tmp, "int") != 0) {
-                    fprintf(stderr, "Semantic Error : the variable can't be affect\n");
-                    exit(2);
-                }
-            } else {
-                printf("tmp %s var %s\n", tmp, var);
-                if (strcmp(tmp, var) != 0) {
-                    fprintf(stderr, "Semantic Error : the variable can't be affect\n");
-                    exit(2);
-                }
-            }
-            break;
-
-        case Equals:
-        case Compare:
-        case AddSub:
-        case DivStar:
-            TestVar(node->firstChild, symbol_tab, var);
-            TestVar(node->firstChild->nextSibling, symbol_tab, var);
-            break;
-
-        case IntLiteral:
-            if (strcmp(var, "char") == 0)
-                fprintf(stderr, "Warning : you affect char for a int1\n");
-
-        case CharLiteral:
-            if (strcmp(var, "char") != 0 && strcmp(var, "int") != 0) {
-                fprintf(stderr, "Semantic Error : the variable can't be affect\n");
-                exit(2);
-            }
-            break;
-
-        default:
-            break;
     }
     return 0;
 }
@@ -528,12 +389,13 @@ int searchReturn(Node *node) {
     }
 }
 
-int SemanticErrorAux2(Node *node, SymbolTable *symbol_tab) {
-    int tmp1, tmp2;
+int SemanticErrorAux(Node *node, SymbolTable *symbol_tab) {
+    int tmp1, tmp2, cpt;
     TableType *type;
     TableEntry *entry;
     TableChamp *champ;
     TableFunc *func;
+    Node *parametre;
 
     if (NULL == node) {
         return 0;
@@ -541,22 +403,18 @@ int SemanticErrorAux2(Node *node, SymbolTable *symbol_tab) {
 
     switch (node->kind) {
         case Corps:
-            printf("lila\n");
-            SemanticErrorAux2(node->firstChild->nextSibling, symbol_tab);  //rentre dans SuiteInstr
-            printf("lile\n");
+            SemanticErrorAux(node->firstChild->nextSibling, symbol_tab);  //rentre dans SuiteInstr
             break;
 
         case SuiteInstr:
             for (Node *child = node->firstChild; child != NULL; child = child->nextSibling) {
-                SemanticErrorAux2(child, symbol_tab);
+                SemanticErrorAux(child, symbol_tab);
             }
             break;
 
         case Asignment:
-            printf("assi ident %s\n", node->firstChild->u.identifier);
-            tmp1 = SemanticErrorAux2(node->firstChild, symbol_tab);
-            tmp2 = SemanticErrorAux2(node->firstChild->nextSibling, symbol_tab);
-            printf("%d %d\n", tmp1, tmp2);
+            tmp1 = SemanticErrorAux(node->firstChild, symbol_tab);
+            tmp2 = SemanticErrorAux(node->firstChild->nextSibling, symbol_tab);
             if (tmp1 != tmp2) {
                 if (tmp1 == 1 && tmp2 == 4) {
                     fprintf(stderr, "Warning : assignement from an int to a char, line %d\n", node->lineno);
@@ -574,8 +432,8 @@ int SemanticErrorAux2(Node *node, SymbolTable *symbol_tab) {
         case And:
         case AddSub:
         case DivStar:
-            tmp1 = SemanticErrorAux2(node->firstChild, symbol_tab);
-            tmp2 = SemanticErrorAux2(node->firstChild->nextSibling, symbol_tab);
+            tmp1 = SemanticErrorAux(node->firstChild, symbol_tab);
+            tmp2 = SemanticErrorAux(node->firstChild->nextSibling, symbol_tab);
 
             if (tmp1 == 1) {
                 tmp1 = 4;
@@ -592,14 +450,11 @@ int SemanticErrorAux2(Node *node, SymbolTable *symbol_tab) {
 
         case If:
         case While:
-            SemanticErrorAux2(node->firstChild, symbol_tab);
-            SemanticErrorAux2(node->firstChild->nextSibling, symbol_tab);
+            SemanticErrorAux(node->firstChild, symbol_tab);
+            SemanticErrorAux(node->firstChild->nextSibling, symbol_tab);
             break;
         case Identifier:
-            printf("ident %s  seul\n", node->u.identifier);
-            printf("%s\n", node->u.identifier);
             if (checkTable(&entry, symbol_tab, node->u.identifier)) {
-                printf("%s\n", entry->type);
                 if (strcmp(entry->type, "int") == 0) {
                     return 4;
                 }
@@ -625,11 +480,8 @@ int SemanticErrorAux2(Node *node, SymbolTable *symbol_tab) {
             break;
 
         case Return:
-            printf("lala\n");
             checkFunc(&func, symbol_tab, symbol_tab->name);
-            tmp1 = SemanticErrorAux2(node->firstChild, symbol_tab);
-            printf("---%d\n", func->size);
-            printf("---%s\n", func->name);
+            tmp1 = SemanticErrorAux(node->firstChild, symbol_tab);
 
             if (tmp1 != func->size) {
                 if (tmp1 == 1 && func->size == 4) {
@@ -643,24 +495,7 @@ int SemanticErrorAux2(Node *node, SymbolTable *symbol_tab) {
             break;
 
         case Readc:  //lit un caractere
-            tmp1 = SemanticErrorAux2(node->firstChild, symbol_tab);
-
-            if (tmp1 == 4) {
-                fprintf(stderr, "Warning : assignement from an int to a char, line %d\n", node->lineno);
-            } else if (tmp1 != 1) {
-                fprintf(stderr, "Error : invalid return type, expected char, line %d\n", node->lineno);
-                exit(2);
-            }
-
-            break;
-
-        case Print:
-        case Else:
-            SemanticErrorAux2(node->firstChild, symbol_tab);
-            break;
-
-        case Reade:  //lit un entier
-            tmp1 = SemanticErrorAux2(node->firstChild, symbol_tab);
+            tmp1 = SemanticErrorAux(node->firstChild, symbol_tab);
 
             if (tmp1 > 4) {
                 fprintf(stderr, "Error : invalid return type, expected char, line %d\n", node->lineno);
@@ -669,8 +504,52 @@ int SemanticErrorAux2(Node *node, SymbolTable *symbol_tab) {
 
             break;
 
+        case Print:
+            tmp1 = SemanticErrorAux(node->firstChild, symbol_tab);
+            if (tmp1 > 4) {
+                fprintf(stderr, "Error : invalid parameter type, expected char or int, line %d\n", node->lineno);
+                exit(2);
+            }
+            break;
+        case Else:
+            SemanticErrorAux(node->firstChild, symbol_tab);
+            break;
+
+        case Reade:  //lit un entier
+            tmp1 = SemanticErrorAux(node->firstChild, symbol_tab);
+
+            if (tmp1 == 1) {
+                fprintf(stderr, "Warning : assignement from an int to a char, line %d\n", node->lineno);
+            } else if (tmp1 > 4) {
+                fprintf(stderr, "Error : invalid return type, expected char, line %d\n", node->lineno);
+                exit(2);
+            }
+
+            break;
+
         case Func:
             if (checkFunc(&func, symbol_tab, node->u.identifier)) {
+                parametre = node->firstChild;
+                cpt = 0;
+                while (parametre != NULL) {
+                    tmp1 = SemanticErrorAux(parametre, symbol_tab);
+                    champ = func->param;
+                    while (champ != NULL) {
+                        if (champ->place == cpt) {
+                            tmp2 = champ->size;
+                            if (tmp2 == 1 && tmp1 == 4) {
+                                fprintf(stderr, "Warning : assignement from an int to a char, line %d\n", node->lineno);
+                            } else if (tmp1 != tmp2 && (tmp2 != 4 && tmp1 != 1)) {
+                                fprintf(stderr, "Error : invalid incompatible types, line %d\n", node->lineno);
+                                exit(2);
+                            }
+                            break;
+                        }
+                        champ = champ->next;
+                    }
+                    cpt += 1;
+                    parametre = parametre->nextSibling;
+                }
                 return func->size;
             } else {
                 fprintf(stderr, "Error : unknown function %s, line %d\n", node->u.identifier, node->lineno);
@@ -710,8 +589,7 @@ void readSemanticError(Node *node) {
                 fprintf(stderr, "Error : control reach end of non-void function, line %d\n", node->lineno);
                 exit(2);
             }
-            SemanticErrorAux2(node->firstChild->nextSibling, &(node->u.symbol_tab));  //va directement a corp
-            printf("première fonction\n");
+            SemanticErrorAux(node->firstChild->nextSibling, &(node->u.symbol_tab));  //va directement a corp
             readSemanticError(node->nextSibling);  //plusieurs fonction
             break;
 

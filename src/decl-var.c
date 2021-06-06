@@ -28,7 +28,7 @@ void Print_table(SymbolTable table) {
     }
 
     while (current_type != NULL) {
-        printf("\t%d - %s\n", current_type->size, current_type->name);
+        printf("\t%s\n", current_type->name);
 
         for (TableChamp *current_champ = current_type->champs; current_champ != NULL; current_champ = current_champ->next) {
             printf("\t\t%s - %s\n", current_champ->type, current_champ->name);
@@ -53,24 +53,23 @@ void Print_table(SymbolTable table) {
         current_func = current_func->next;
     }
 
-    printf("%s - size = %d :\n", table.name, table.stsize);
+    printf("%s :\n", table.name);
     while (current != NULL) {
-        printf("\t%d - ", current->offset);
         switch (current->kind) {
             case Variable:
-                printf("Variable - ");
+                printf("\tVariable - ");
                 break;
             case Function:
-                printf("Function - ");
+                printf("\tFunction - ");
                 break;
             case Parameter:
-                printf("Parameter - ");
+                printf("\tParameter - ");
                 break;
 
             default:
                 break;
         }
-        printf("%ld %s %s\n", current->size, current->type, current->identifier);
+        printf("%s %s\n", current->type, current->identifier);
         current = current->next;
     }
 }
