@@ -120,14 +120,24 @@ void addFunc(Node *node, SymbolTable *table) {
     Node *current_param;
     TableFunc *new;
     TableType *new_type;
-    TableChamp *new_champ;
+    TableChamp *new_champ, *last_champ;
     char name[MAXNAME];
     char type[MAXNAME];
 
+    if (strcmp(node->firstChild->u.identifier, "int") == 0) {
+        strcpy(type, "int");
+    } else if (strcmp(node->firstChild->u.identifier, "char") == 0) {
+        strcpy(type, "char");
+    } else if (strcmp(node->firstChild->u.identifier, "void") == 0) {
+        strcpy(type, "void");
+    } else {
+        strcpy(type, "struct ");
+        strcat(type, node->firstChild->u.identifier);
+    }
+    
     strcpy(name, node->firstChild->firstChild->u.identifier);
-    strcpy(type, node->firstChild->u.identifier);
 
-    if (checkFunc(NULL, table, name)) {
+    if (checkFunc(&new, table, name)) {
         fprintf(stderr, "Error : the function %s already exist\n", name);
         exit(2);
     }
@@ -150,7 +160,7 @@ void addFunc(Node *node, SymbolTable *table) {
     } else if (strcmp(type, "void") == 0) {
         new->size = 0;
     } else {
-        if (checkType(&new_type, table, type) == 1) {
+        if (checkType(&new_type, table, type)) {
             new->size = new_type->size;
         } else {
             fprintf(stderr, "Error : unknown type %s\n", type);
@@ -158,19 +168,19 @@ void addFunc(Node *node, SymbolTable *table) {
             //le type de la fonction n'existe pas
         }
     }
+    
+    current_param = node->firstChild->firstChild->nextSibling->firstChild;
 
-    // current_param = node->firstChild->firstChild->nextSibling->firstChild;
+    while (current_param != NULL) {
+        if (NULL == (new_champ = (TableChamp *)malloc(sizeof(TableChamp)))) {
+            perror("malloc");
+            exit(3);
+        }
+        strcpy(new_champ->name, current_param->firstChild->u.identifier);
+        strcpy(new_champ->type, current_param->u.identifier);
 
-    // while (current_param != NULL) {
-    //     if (NULL == (new_champ = (TableChamp *)malloc(sizeof(TableChamp)))) {
-    //         perror("malloc");
-    //         exit(3);
-    //     }
-    //     strcpy(new_champ->name, current_param->firstChild->u.identifier);
-    //     strcpy(new_champ->type, current_param->u.identifier);
-
-    //     current_param = current_param->nextSibling;
-    // }
+        current_param = current_param->nextSibling;
+    }
 }
 
 void make_table_aux(Node *node, SymbolTable *table, Kind_Val kind) {
@@ -199,20 +209,10 @@ void make_table_aux(Node *node, SymbolTable *table, Kind_Val kind) {
             make_table_aux(node->nextSibling, table, kind);
             break;
         case DeclFonct:
-            if (strcmp(node->firstChild->u.identifier, "int") == 0) {
-                strcpy(type, "int");
-            } else if (strcmp(node->firstChild->u.identifier, "char") == 0) {
-                strcpy(type, "char");
-            } else if (strcmp(node->firstChild->u.identifier, "void") == 0) {
-                strcpy(type, "void");
-            } else {
-                strcpy(type, "struct ");
-                strcat(type, node->firstChild->u.identifier);
-            }
-
             addFunc(node, table);
             // make_table_aux(node->firstChild, table, Function);
             initialisation_Table(&node->u.symbol_tab, node->firstChild->firstChild->u.identifier, table);
+            
             strcpy(node->u.symbol_tab.name, node->firstChild->firstChild->u.identifier);
             make_table_aux(node->firstChild->firstChild->nextSibling, &node->u.symbol_tab, Parameter);
             make_table_aux(node->firstChild->nextSibling->firstChild, &node->u.symbol_tab, Variable);
@@ -894,7 +894,7 @@ void readSemanticError(Node *node) {
     if (NULL == node) {
         return;
     }
-
+    
     switch (node->kind) {
         case Prog:
             if (researchMain(&(node->u.symbol_tab)) == 0) {

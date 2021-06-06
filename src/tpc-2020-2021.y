@@ -415,6 +415,7 @@ int main(int argc, char *argv[]) {
         /* Affiche symbol table */
         printTables(abs_tree);
     }
+    
     readSemanticError(abs_tree);
     trad_to_nasm(argv[argc - 1], abs_tree);
 
