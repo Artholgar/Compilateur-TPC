@@ -23,7 +23,7 @@ all: $(EXEC) clean
 
 test: $(EXEC) ./src/test.sh
 	chmod +x ./src/test.sh
-	./src/test.sh $(EXEC) ./test/good/ ./test/syn-err/ 
+	./src/test.sh $(EXEC) ./test/good/ ./test/warn-err/  ./test/syn-err/ ./test/sem-err/ 
 
 ./obj/$(NAMEYACC).tab.c ./obj/$(NAMEYACC).tab.h: ./src/$(NAMEYACC).y
 	bison $< --defines=./obj/$(NAMEYACC).tab.h -o ./obj/$(NAMEYACC).tab.c

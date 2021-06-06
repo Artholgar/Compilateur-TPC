@@ -510,6 +510,7 @@ void SemanticErrorAux(Node * node, SymbolTable symbol_tab){
             break;
         
         case Print :
+            break;
         case Readc : //lit un caractere
             if(node->firstChild->firstChild != NULL){
                 reasearchType(node->firstChild, node->firstChild->firstChild, &symbol_tab, var);
