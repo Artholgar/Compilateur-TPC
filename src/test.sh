@@ -23,16 +23,20 @@ else
 
     for fich in $liste_good
     do
-        echo "$2$fich :"
-        $1 $2$fich
-        tmp=$?
-        echo "valeur de retour : $tmp"
-        echo ""
-
-        ((total=$total+1))
-        if [ $tmp -eq 0 ]
+        extenssion=$(echo ${fich#*.})
+        if [ "$extenssion" = "tpc" ]
         then
-            ((valides=$valides+1))
+            echo "$2$fich :"
+            $1 $2$fich
+            tmp=$?
+            echo "valeur de retour : $tmp"
+            echo ""
+
+            ((total=$total+1))
+            if [ $tmp -eq 0 ]
+            then
+                ((valides=$valides+1))
+            fi
         fi
 
     done
@@ -43,16 +47,20 @@ else
 
     for fich in $liste_warn
     do
-        echo "$3$fich :"
-        $1 $3$fich
-        tmp=$?
-        echo "valeur de retour : $tmp"
-        echo ""
-
-        ((total=$total+1))
-        if [ $tmp -ne 0 ]
+        extenssion=$(echo ${fich#*.})
+        if [ "$extenssion" = "tpc" ]
         then
-            ((valides=$valides+1))
+            echo "$3$fich :"
+            $1 $3$fich
+            tmp=$?
+            echo "valeur de retour : $tmp"
+            echo ""
+
+            ((total=$total+1))
+            if [ $tmp -eq 0 ]
+            then
+                ((valides=$valides+1))
+            fi
         fi
 
     done
@@ -63,16 +71,20 @@ else
 
     for fich in $liste_syn_err
     do
-        echo "$4$fich :"
-        $1 $4$fich
-        tmp=$?
-        echo "valeur de retour : $tmp"
-        echo ""
-
-        ((total=$total+1))
-        if [ $tmp -ne 0 ]
+        extenssion=$(echo ${fich#*.})
+        if [ "$extenssion" = "tpc" ]
         then
-            ((valides=$valides+1))
+            echo "$4$fich :"
+            $1 $4$fich
+            tmp=$?
+            echo "valeur de retour : $tmp"
+            echo ""
+
+            ((total=$total+1))
+            if [ $tmp -eq 1 ]
+            then
+                ((valides=$valides+1))
+            fi
         fi
 
     done
@@ -83,16 +95,20 @@ else
 
     for fich in $liste_sem_err
     do
-        echo "$5$fich :"
-        $1 $5$fich
-        tmp=$?
-        echo "valeur de retour : $tmp"
-        echo ""
-
-        ((total=$total+1))
-        if [ $tmp -ne 0 ]
+        extenssion=$(echo ${fich#*.})
+        if [ "$extenssion" = "tpc" ]
         then
-            ((valides=$valides+1))
+            echo "$5$fich :"
+            $1 $5$fich
+            tmp=$?
+            echo "valeur de retour : $tmp"
+            echo ""
+
+            ((total=$total+1))
+            if [ $tmp -eq 2 ]
+            then
+                ((valides=$valides+1))
+            fi
         fi
 
     done

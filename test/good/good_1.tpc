@@ -1,9 +1,3 @@
-/* #include <stdio.h>
-   #include <math.h> */
-/* int trinome(float a, float b, float c) ;
-    double valeur(double a, double b, double c, double x) ; */
-/* Résolution d'une équation du deuxième degré */
-
 int r1, r2;
 
 int max;
@@ -17,15 +11,15 @@ int main(void) {
    int b, c;
    b=-1;
    str1.max = 3;
-   a + b;
+   c + b;
    while (b<=1) {
        c=-1;
        while (c<=1) {
            print(b);
            if (trinome(1,b,c)) {
                print(r1);print (r2);
-               print(valeur(1,b,c,r1));print (valeur(1,b,c,r2));
-               if (0<=r1 && r1<=max && 0>=r2 && r2>=-max)
+               /*print(valeur(1,b,c,r1));print (valeur(1,b,c,r2));*/
+               if (0<=r1 && r1<=max && 0>=r2 && r2>=max)
                    return 0;
            }
            c=c+1;
@@ -40,7 +34,6 @@ int main(void) {
     int s;
     d=b*b-4*a*c;
     if (d>=0) {
-        s=sqrt(d);
         r1=(-b+s)/(2*a);
         r2=(-b-s)/(2*a);
         return 1;
@@ -57,7 +50,6 @@ int trinome(int a,int b, int c) {
     int s;
     d=b*b-4*a*c;
     if (d>=0) {
-        s=sqrt(d);
         r1=(-b+s)/(2*a);
         r2=(-b-s)/(2*a);
         return 1;

@@ -303,7 +303,6 @@ void addFunc(SymbolTable *table, const char name[], char *type) {
             fprintf(stderr, "Error : the function doesn't exist\n");
             exit(2);
             //la fonction n'existe pas
-            ;
         }
     }
 }
