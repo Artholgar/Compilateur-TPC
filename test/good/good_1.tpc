@@ -10,7 +10,7 @@ int max;
 struct mystruct {
     int max;
     int min;
-}
+};
 
 int main(void) {
    struct mystruct str1, str2;
