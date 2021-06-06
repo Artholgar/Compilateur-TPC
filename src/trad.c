@@ -125,7 +125,7 @@ int trad_adresse(FILE* file, Node* node, SymbolTable* table) {
             strcpy(name, type->name);
             // remove 'struct ' from type name
             memmove(name, name + 7, strlen(name));
-            fprintf(file, " - %s.%s", name, champ->name);
+            fprintf(file, " + %s.%s", name, champ->name);
         }
     }
     return 1;
@@ -224,16 +224,19 @@ int trad_identifier(FILE* file, Node* node, SymbolTable* table) {
             for (champ = type->champs; champ != NULL; champ = champ->next) {
                 if (isGlobal(table, node->u.identifier) == 1) {
                     if (champ->size == 4) {
-                        fprintf(file, "\tmov eax, dword [%s - %d + %s.%s]\n", Lval->identifier, type->size, name, champ->name);
-                        fprintf(file, "\tmov dword [rsp], eax\n");
+                        fprintf(file, "\tmov eax, dword [%s + %s.%s]\n", Lval->identifier, name, champ->name);
+                        fprintf(file, "\tmov dword [rsp + %s.%s], eax\n", name, champ->name);
                     } else {
-                        fprintf(file, "\tmov al, byte [%s - %d + %s.%s]\n", Lval->identifier, type->size, name, champ->name);
+                        fprintf(file, "\tmov al, byte [%s + %s.%s]\n", Lval->identifier, name, champ->name);
+                        fprintf(file, "\tmov byte [rsp + %s.%s], al\n", name, champ->name);
                     }
                 } else {
                     if (champ->size == 4) {
                         fprintf(file, "\tmov eax, dword [rbp - %d - %d + %s.%s]\n", -Lval->offset, type->size, name, champ->name);
+                        fprintf(file, "\tmov dword [rsp + %s.%s], eax\n", name, champ->name);
                     } else {
                         fprintf(file, "\tmov al, byte [rbp - %d - %d + %s.%s]\n", -Lval->offset, type->size, name, champ->name);
+                        fprintf(file, "\tmov byte [rsp + %s.%s], al\n", name, champ->name);
                     }
                 }
             }
@@ -250,6 +253,7 @@ int trad_assignment(FILE* file, Node* node, SymbolTable* table) {
     TableType* type = NULL;
     TableChamp* champ = NULL;
     int size;
+    char name[MAXNAME];
 
     if (checkTable(&Lval, table, node->firstChild->u.identifier)) {
         // Quand il ne s'agit pas d'une structure entière.
@@ -277,7 +281,39 @@ int trad_assignment(FILE* file, Node* node, SymbolTable* table) {
             }
 
         } else {
-            ;
+            // On est dans une affectation de struct
+            // On traduit d'abord ce qu'il y a a droite
+            // on traduit l'instruction, et on met le resultat dans rax
+            trad_instr(file, node->firstChild->nextSibling, table);
+
+            strcpy(name, type->name);
+            // remove 'struct ' from type name
+            memmove(name, name + 7, strlen(name));
+
+            fprintf(file, "\tmov rbx, rax\n");
+
+            for (champ = type->champs; champ != NULL; champ = champ->next) {
+                if (isGlobal(table, Lval->identifier) == 1) {
+                    if (champ->size == 4) {
+                        fprintf(file, "\tmov eax, dword [rbx + %s.%s]\n", name, champ->name);
+                        fprintf(file, "\tmov dword [%s + %s.%s], eax\n", Lval->identifier, name, champ->name);
+                    } else {
+                        fprintf(file, "\tmov al, byte [rbx + %s.%s]\n", name, champ->name);
+                        fprintf(file, "\tmov byte [%s + %s.%s], al\n", Lval->identifier, name, champ->name);
+                    }
+                } else {
+                    if (champ->size == 4) {
+                        fprintf(file, "\tmov eax, dword [rbx + %s.%s]\n", name, champ->name);
+                        fprintf(file, "\tmov dword [rbp - %d - %d + %s.%s], eax\n", -Lval->offset, type->size, name, champ->name);
+                    } else {
+                        fprintf(file, "\tmov al, byte [rbx + %s.%s]\n", name, champ->name);
+                        fprintf(file, "\tmov byte [rbp - %d - %d + %s.%s], al\n", -Lval->offset, type->size, name, champ->name);
+                    }
+                }
+            }
+
+            fprintf(file, "\tadd rsp, %d\n", type->size);
+            bytes_to_drop -= type->size;
         }
     }
     return 1;
@@ -491,7 +527,7 @@ int trad_instr(FILE* file, Node* node, SymbolTable* table) {
         case Return:
             trad_instr(file, node->firstChild, table);
 
-            fprintf(file, "\tadd rsp, %d\n\n", table->stsize);
+            fprintf(file, "\tadd rsp, %d + %d\n\n", table->stsize, bytes_to_drop);
 
             fprintf(file, "\tpop rbp\n\n");
 
