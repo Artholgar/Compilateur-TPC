@@ -77,7 +77,10 @@ void printTree(Node *node) {
         case Type:
         case AddSub:
         case DivStar:
+        case Equals:
+        case Compare:
         case Struct:
+        case Func:
         case Identifier:
             printf(": %s", node->u.identifier);
             break;
@@ -317,7 +320,7 @@ int TestType(Node * node, SymbolTable * symbol_tab, char var[MAXNAME], char type
     
     
     current = symbol_tab->parent->types;
-
+    
     while (current != NULL) {
         if (strcmp(current->name, var) == 0) {
             tmp = current->champs;
@@ -347,10 +350,9 @@ int reasearchType(Node * fils, Node * frere, SymbolTable * symbol_tab, char var[
     printf("le type est %s\n", type);
     
     if (TestType(frere, symbol_tab, type, var) == 0){
-        fprintf(stderr, "Semantic Error : the variable isn't exist \n");
+        fprintf(stderr, "Semantic Error : the variable isn't exist 5\n");
         exit(2);
     }
-    
     return 0;
 }
 
@@ -362,27 +364,53 @@ int TestVar(Node * node, SymbolTable symbol_tab, char var[MAXNAME]){
 
     switch(node->kind){
         case Identifier : 
-            if(researchVar(&symbol_tab, node->u.identifier, tmp) == 0){
-                fprintf(stderr, "Semantic Error : the variable isn't exist 2\n");
-                exit(EXIT_FAILURE);
+            
+            if(node->firstChild != NULL){
+                reasearchType(node, node->firstChild, &symbol_tab, tmp);
             }
-            if(strcmp(tmp, var) != 0 && strcmp(var, "char") == 0){
-                
-                fprintf(stderr, "Warning : you affect char for a int1\n");
+            
+            else{
+                if(researchVar(&symbol_tab, node->u.identifier, tmp) == 0){
+                    fprintf(stderr, "Semantic Error : the variable isn't exist 2\n");
+                    exit(2);
+                }
+            }
+            
+            
+            if(strcmp(var, "int") == 0){
+                if(strcmp(tmp, "char") != 0 && strcmp(tmp, "int") != 0 ){
+                    fprintf(stderr, "Semantic Error : the variable can't be affect\n");
+                    exit(2);
+                }
+            }
+
+            else if(strcmp(var, "char") == 0){
+                if(strcmp(tmp, "int") == 0)
+                    fprintf(stderr, "Warning : you affect char for a int1\n");
+                if(strcmp(tmp, "char") != 0 && strcmp(tmp, "int") != 0) {
+                    fprintf(stderr, "Semantic Error : the variable can't be affect\n");
+                    exit(2);
+                }
+            }
+            else{
+                printf("tmp %s var %s\n", tmp, var);
+                if(strcmp(tmp, var) != 0) {
+                    fprintf(stderr, "Semantic Error : the variable can't be affect\n");
+                    exit(2);
+                }
             }
             break;
         
+        case  Equals :
+        case Compare :
         case AddSub : 
         case DivStar : 
             TestVar(node->firstChild, symbol_tab, var);
             TestVar(node->firstChild->nextSibling, symbol_tab, var);
             break;
         
-        case LValue :
-            reasearchType(node->firstChild, node->firstChild->nextSibling, &symbol_tab, tmp);
-            if(strcmp(tmp, var) != 0 && strcmp(var, "char") == 0)
-                fprintf(stderr, "Warning : you affect char for a int2\n");
-            break;
+        
+       
         
         case IntLiteral:
             if(strcmp(var, "char") == 0)
@@ -413,44 +441,58 @@ void SemanticErrorAux(Node * node, SymbolTable symbol_tab){
             }
             break;
         
+        
+        case Equals :
+        case Compare :
         case Asignment :
             printf("ident %s\n", node->firstChild->u.identifier);
-            if(node->firstChild->kind == LValue){
-                reasearchType(node->firstChild->firstChild, node->firstChild->firstChild->nextSibling, &symbol_tab, var);
+            if(node->firstChild->firstChild != NULL){
+                reasearchType(node->firstChild, node->firstChild->firstChild, &symbol_tab, var);
             }
             
+            else if(node->firstChild->kind == IntLiteral)
+                strcpy(var, "int");
+
+            else if(node->firstChild->kind == CharLiteral)
+                strcpy(var, "char");
             else{
                 if(researchVar(&symbol_tab, node->firstChild->u.identifier, var) == 0){
                     fprintf(stderr, "Semantic Error : the variable isn't exist 1\n");
                     exit(EXIT_FAILURE);
                 }
             }
+            
             TestVar(node->firstChild->nextSibling, symbol_tab, var);
             break;
-        
-        case LValue :
-            reasearchType(node->firstChild, node->firstChild->nextSibling, &symbol_tab, var);
-            break;
-        
-        
+    
         case If :
-        case AddSub:
-        case DivStar:
         case While :
         case Or :
         case And :
-        case Equals :
-        case Compare :
+        case AddSub:
+        case DivStar:
             SemanticErrorAux(node->firstChild, symbol_tab);
             SemanticErrorAux(node->firstChild->nextSibling, symbol_tab);
             break;
         
         case Identifier :
-            printf("ident %s\n", node->u.identifier);
+            printf("sosh\n");
+            if(node->firstChild != NULL){
+                reasearchType(node, node->firstChild, &symbol_tab, var);
+            }
+            
+            else{
+                if(researchVar(&symbol_tab, node->u.identifier, var) == 0){
+                    fprintf(stderr, "Semantic Error : the variable isn't exist 1\n");
+                    exit(EXIT_FAILURE);
+                }
+            }
+            
             if(researchVar(&symbol_tab, node->u.identifier, var) == 0){
                 fprintf(stderr, "Semantic Error : the variable isn't exist 1\n");
                 exit(EXIT_FAILURE);
             }
+
             break;
         
         case Return :
@@ -466,21 +508,50 @@ void SemanticErrorAux(Node * node, SymbolTable symbol_tab){
 
             TestVar(node->firstChild, symbol_tab, var);
             break;
-
-        case Readc : //lit un caractere
-        case Else :
+        
         case Print :
+        case Readc : //lit un caractere
+            if(node->firstChild->firstChild != NULL){
+                reasearchType(node->firstChild, node->firstChild->firstChild, &symbol_tab, var);
+            }
+            
+            else{
+                if(researchVar(&symbol_tab, node->firstChild->u.identifier, var) == 0){
+                    fprintf(stderr, "Semantic Error : the variable isn't exist 1\n");
+                    exit(EXIT_FAILURE);
+                }
+            }
+
+            if(strcmp(var, "char") != 0 && strcmp(var, "int") != 0) {
+                    fprintf(stderr, "Semantic Error : the variable can't be affect\n");
+                    exit(2);
+                }
+            break;
+        
+        case Else :
             SemanticErrorAux(node->firstChild, symbol_tab);
             break;
         
     
         case Reade : //lit un entier 
-            if(researchVar(&symbol_tab, node->firstChild->u.identifier, var) == 0){
-                fprintf(stderr, "Semantic Error : the variable isn't exist 1\n");
-                exit(EXIT_FAILURE);
+            if(node->firstChild->firstChild != NULL){
+                reasearchType(node->firstChild, node->firstChild->firstChild, &symbol_tab, var);
             }
+            
+            else{
+                if(researchVar(&symbol_tab, node->firstChild->u.identifier, var) == 0){
+                    fprintf(stderr, "Semantic Error : the variable isn't exist 1\n");
+                    exit(EXIT_FAILURE);
+                }
+            }
+
             if(strcmp(var, "char") == 0)
                 fprintf(stderr, "Warning : you affect char for a int\n");
+            
+            if(strcmp(var, "char") != 0 && strcmp(var, "int") != 0) {
+                    fprintf(stderr, "Semantic Error : the variable can't be affect\n");
+                    exit(2);
+                }
             break;
 
         case IntLiteral:
@@ -517,4 +588,3 @@ void readSemanticError(Node *node){
             break;
     }
 }
-
