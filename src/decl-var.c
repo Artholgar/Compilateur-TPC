@@ -264,7 +264,8 @@ void addVar(SymbolTable *table, const char name[], char *type, Kind_Val kind) {
 
             new->size = new_type->size;
         } else {
-            // erreur sémantique, a toi de jouer Thomas !!
+            fprintf(stderr, "Error : the type doesn't exist\n");
+            exit(2);
             // le type écrit n'existe pas
             ;
         }
@@ -276,7 +277,7 @@ void addFunc(SymbolTable *table, const char name[], char *type) {
     TableType *new_type;
 
     if (checkFunc(table, name)) {
-        fprintf(stderr, "Error : the function %s already exist \n", name);
+        fprintf(stderr, "Error : the function %s already exist\n", name);
         exit(2);
     }
     
@@ -299,7 +300,8 @@ void addFunc(SymbolTable *table, const char name[], char *type) {
         if (checkType(&new_type, table, type) == 1) {
             new->size = new_type->size;
         } else {
-            // erreur sémantique, a toi de jouer Thomas !!
+            fprintf(stderr, "Error : the function doesn't exist\n");
+            exit(2);
             //la fonction n'existe pas
             ;
         }
