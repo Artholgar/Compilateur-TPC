@@ -80,7 +80,6 @@ void printTree(Node *node) {
         case Equals:
         case Compare:
         case Struct:
-        case Func:
         case Identifier:
             printf(": %s", node->u.identifier);
             break;
