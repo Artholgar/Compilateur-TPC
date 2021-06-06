@@ -54,6 +54,7 @@ typedef struct func {
     char name[MAXNAME];
     char type[MAXNAME];
     int size;
+    struct champ * param;
     struct func *next;
 } TableFunc;
 
@@ -78,9 +79,9 @@ int checkType(TableType** type, SymbolTable *table, const char name[]);
 
 int checkChamp(TableChamp** champ, TableType *type, const char name[]);
 
-void addVar(SymbolTable * table, const char name[], char* type, Kind_Val kind);
+int checkFunc(TableFunc** func, SymbolTable * table, const char name[]);
 
-void addFunc(SymbolTable *table, const char name[], char *type);
+void addVar(SymbolTable * table, const char name[], char* type, Kind_Val kind);
 
 
 #endif
