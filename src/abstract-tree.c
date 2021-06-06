@@ -476,7 +476,7 @@ void SemanticErrorAux(Node * node, SymbolTable symbol_tab){
             break;
         
         case Identifier :
-            printf("sosh\n");
+            printf("ident %s  seul\n", node->u.identifier);
             if(node->firstChild != NULL){
                 reasearchType(node, node->firstChild, &symbol_tab, var);
             }
@@ -509,7 +509,7 @@ void SemanticErrorAux(Node * node, SymbolTable symbol_tab){
             TestVar(node->firstChild, symbol_tab, var);
             break;
         
-        case Print :
+        
         case Readc : //lit un caractere
             if(node->firstChild->firstChild != NULL){
                 reasearchType(node->firstChild, node->firstChild->firstChild, &symbol_tab, var);
@@ -527,7 +527,8 @@ void SemanticErrorAux(Node * node, SymbolTable symbol_tab){
                     exit(2);
                 }
             break;
-        
+
+        case Print :  
         case Else :
             SemanticErrorAux(node->firstChild, symbol_tab);
             break;
