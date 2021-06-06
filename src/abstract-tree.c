@@ -565,6 +565,12 @@ void SemanticErrorAux(Node * node, SymbolTable symbol_tab){
                 }
             break;
 
+        case Func :
+            for (Node *child = node->firstChild; child != NULL; child = child->nextSibling) {
+                SemanticErrorAux(child, symbol_tab);
+            }
+            break;
+
         case IntLiteral:
         case CharLiteral:
         case Type:
@@ -574,6 +580,9 @@ void SemanticErrorAux(Node * node, SymbolTable symbol_tab){
     }
 }
 
+void remplisParam(SymbolTablenode->u.symbol_tab->parent, node->u.symbol_tab){
+
+}
 
 void readSemanticError(Node *node){
     if (NULL == node) {

@@ -286,6 +286,8 @@ void addFunc(SymbolTable *table, const char name[], char *type) {
         exit(3);
     }
 
+
+    
     new->next = table->func;
     table->func = new;
 
