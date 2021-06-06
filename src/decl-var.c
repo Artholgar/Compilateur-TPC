@@ -182,17 +182,23 @@ int checkVar(SymbolTable * table, const char name[]) {
     return 0;
 }
 
-int checkFunc(SymbolTable * table, const char name[]) {
+int checkFunc(TableFunc** func, SymbolTable * table, const char name[]) {
     TableFunc * current;
-    
+    SymbolTable * tmp;
+
     if (NULL == table) {
         return 0;
     }
+    tmp = table;
+    while (tmp->parent != NULL) {
+        tmp = tmp->parent;
+    }
     
-    current = table->func;
+    current = tmp->func;
 
     while (current != NULL) {
         if (strcmp(current->name, name) == 0) {
+            *func = current;
             return 1;
         }
         current = current->next;
@@ -267,44 +273,6 @@ void addVar(SymbolTable *table, const char name[], char *type, Kind_Val kind) {
             fprintf(stderr, "Error : the type doesn't exist\n");
             exit(2);
             // le type écrit n'existe pas
-            ;
-        }
-    }
-}
-
-void addFunc(SymbolTable *table, const char name[], char *type) {  
-    TableFunc *new;
-    TableType *new_type;
-
-    if (checkFunc(table, name)) {
-        fprintf(stderr, "Error : the function %s already exist\n", name);
-        exit(2);
-    }
-    
-    if (NULL == (new = (TableFunc *)malloc(sizeof(TableFunc)))) {
-        perror("malloc");
-        exit(3);
-    }
-
-
-    
-    new->next = table->func;
-    table->func = new;
-
-    strcpy(table->func->name, name);
-    strcpy(table->func->type, type);
-
-    if (strcmp(type, "int") == 0) {
-        new->size = 4;
-    } else if (strcmp(type, "char") == 0) {
-        new->size = 1;
-    } else {
-        if (checkType(&new_type, table, type) == 1) {
-            new->size = new_type->size;
-        } else {
-            fprintf(stderr, "Error : the function doesn't exist\n");
-            exit(2);
-            //la fonction n'existe pas
             ;
         }
     }
