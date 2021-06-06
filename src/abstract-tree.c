@@ -358,6 +358,10 @@ int researchMain(SymbolTable *table) {
 
     while (current != NULL) {
         if (strcmp(current->name, "main") == 0) {
+            if (current->size != 4) {
+                fprintf(stderr, "Error : main must be int\n");
+                exit(2);
+            }
             return 1;
         }
         current = current->next;
@@ -379,6 +383,11 @@ int searchReturn(Node *node) {
             tmp2 = searchReturn(node->firstChild->nextSibling->nextSibling);
             tmp3 = searchReturn(node->nextSibling);
             return (tmp1 && tmp2) || tmp3;
+            break;
+        case While:
+            tmp1 = searchReturn(node->firstChild->nextSibling);
+            tmp2 = searchReturn(node->nextSibling);
+            return tmp1 || tmp2;
             break;
         case Return:
             return 1;
@@ -484,7 +493,7 @@ int SemanticErrorAux(Node *node, SymbolTable *symbol_tab) {
             tmp1 = SemanticErrorAux(node->firstChild, symbol_tab);
 
             if (tmp1 != func->size) {
-                if (tmp1 == 1 && func->size == 4) {
+                if (tmp1 == 4 && func->size == 1) {
                     fprintf(stderr, "Warning : assignement from an int to a char, line %d\n", node->lineno);
                 } else if (!(tmp1 == 4 && func->size == 1)) {
                     fprintf(stderr, "Error : invalid return type, expected %s, line %d\n", func->type, node->lineno);
@@ -539,7 +548,7 @@ int SemanticErrorAux(Node *node, SymbolTable *symbol_tab) {
                             tmp2 = champ->size;
                             if (tmp2 == 1 && tmp1 == 4) {
                                 fprintf(stderr, "Warning : assignement from an int to a char, line %d\n", node->lineno);
-                            } else if (tmp1 != tmp2 && (tmp2 != 4 && tmp1 != 1)) {
+                            } else if (tmp1 != tmp2 && (tmp2 != 4 || tmp1 != 1)) {
                                 fprintf(stderr, "Error : invalid incompatible types, line %d\n", node->lineno);
                                 exit(2);
                             }

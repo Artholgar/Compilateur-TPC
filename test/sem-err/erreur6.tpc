@@ -1,0 +1,11 @@
+int a;
+char local(int b) {
+    char c;
+
+    return c;
+}
+int main(int i) {
+    char c;
+    c = locall(5);
+    return 0;
+}

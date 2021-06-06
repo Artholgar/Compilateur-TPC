@@ -1,0 +1,11 @@
+int fast(int j){
+    return 0;
+}
+
+char fast(int h){
+    return 'a';
+}
+
+int main(int i) {
+   return 0;
+}

@@ -1,0 +1,15 @@
+struct my_struct {
+   int a;
+   char b;
+};
+
+char fast(int l, int f, int j){
+   struct my_struct m1;
+   struct my_struct m2;
+   reade(l);
+   return m1.a;
+}
+
+int main(void) {
+   return 0;
+}

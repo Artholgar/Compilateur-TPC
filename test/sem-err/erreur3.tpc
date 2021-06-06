@@ -1,0 +1,10 @@
+int a;
+char local(int b) {
+    int a;
+    char c;
+
+    return c;
+}
+int main(int i) {
+   return 0;
+}

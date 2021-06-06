@@ -1,0 +1,13 @@
+struct my_struct {
+   int a;
+   char b;
+};
+
+
+
+int main(int i) {
+   int a;
+   struct  my_struct m1;
+   a = m1 + a;
+   return 0;
+}

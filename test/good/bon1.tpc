@@ -1,0 +1,44 @@
+struct my_struct {
+   int a;
+   char b;
+};
+
+int h;
+struct my_struct la;
+struct my_struct li;
+
+int fast(int l, int f, int j){
+   struct my_struct m1;
+   struct my_struct m2;
+   int b;
+   b = m1.a;
+   m1.b = m1.b;
+   m2.a = 3;
+   print(m1.a);
+   m1 = m2;
+   if( b == 'a'){
+      f = h;
+   }
+   else{
+      f = h;
+   }
+   reade(f);
+   return 0;
+   1;
+   'a';
+   m1;
+}
+
+int main(void) {
+   int b, c;
+   int a;
+   char d;
+   d = 'a';
+   b = 5;
+   fast(b, c, a);
+   la.b = 'g';
+   if( b*b == 'a'){
+      d = 'n';
+   }
+   return 0;
+}

@@ -1,0 +1,17 @@
+struct my_struct {
+   int a;
+   char b;
+};
+
+int fast(char l){
+   struct my_struct m1;
+   struct my_struct m2;
+   m2.b = 8;
+   return m1.a;
+}
+
+int main(void) {
+   int i;
+   fast(i);
+   return 0;
+}

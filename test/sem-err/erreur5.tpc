@@ -1,0 +1,18 @@
+struct my_struct {
+   int a;
+   char b;
+};
+
+int fast(int a, struct my_struct m1){
+    print(m1.a);
+    return 0;
+}
+
+
+int main(int i) {
+   int a;
+   char b;
+   struct  my_struct m1;
+   fast(a, b);
+   return 0;
+}

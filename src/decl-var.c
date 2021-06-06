@@ -277,10 +277,9 @@ void addVar(SymbolTable *table, const char name[], char *type, Kind_Val kind) {
 
             new->size = new_type->size;
         } else {
-            fprintf(stderr, "Error : the type doesn't exist\n");
+            fprintf(stderr, "Error : type %s doesn't exist\n", type);
             exit(2);
             // le type écrit n'existe pas
-            ;
         }
     }
 }
