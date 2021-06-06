@@ -40,6 +40,7 @@ typedef struct champ {
     char name[MAXNAME];
     char type[MAXNAME];
     int size;
+    int place;
     struct champ *next;
 } TableChamp;
 

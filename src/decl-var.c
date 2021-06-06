@@ -15,6 +15,7 @@ void Print_table(SymbolTable table) {
     TableEntry *current;
     TableType *current_type;
     TableFunc *current_func;
+    TableChamp *current_champ;
 
     current = table.array;
 
@@ -41,6 +42,13 @@ void Print_table(SymbolTable table) {
 
     while (current_func != NULL) {
         printf("\t%s - %s\n", current_func->type, current_func->name);
+
+        current_champ = current_func->param;
+
+        while (current_champ != NULL) {
+            printf("\t\t%s %s\n", current_champ->type, current_champ->name);
+            current_champ = current_champ->next;
+        }
 
         current_func = current_func->next;
     }
@@ -194,7 +202,7 @@ int checkFunc(TableFunc **func, SymbolTable *table, const char name[]) {
         tmp = tmp->parent;
     }
 
-    current = table->func;
+    current = tmp->func;
     
     while (current != NULL) {
         if (strcmp(current->name, name) == 0) {

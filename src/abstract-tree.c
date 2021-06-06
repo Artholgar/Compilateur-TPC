@@ -120,9 +120,11 @@ void addFunc(Node *node, SymbolTable *table) {
     Node *current_param;
     TableFunc *new;
     TableType *new_type;
-    TableChamp *new_champ, *last_champ;
+    TableChamp *new_champ;
+    int nb_param = 0;
     char name[MAXNAME];
     char type[MAXNAME];
+    char tmp[MAXNAME];
 
     if (strcmp(node->firstChild->u.identifier, "int") == 0) {
         strcpy(type, "int");
@@ -134,7 +136,7 @@ void addFunc(Node *node, SymbolTable *table) {
         strcpy(type, "struct ");
         strcat(type, node->firstChild->u.identifier);
     }
-    
+
     strcpy(name, node->firstChild->firstChild->u.identifier);
 
     if (checkFunc(&new, table, name)) {
@@ -148,6 +150,7 @@ void addFunc(Node *node, SymbolTable *table) {
     }
 
     new->next = table->func;
+    new->param = NULL;
     table->func = new;
 
     strcpy(table->func->name, name);
@@ -168,17 +171,38 @@ void addFunc(Node *node, SymbolTable *table) {
             //le type de la fonction n'existe pas
         }
     }
-    
+
     current_param = node->firstChild->firstChild->nextSibling->firstChild;
 
     while (current_param != NULL) {
-        if (NULL == (new_champ = (TableChamp *)malloc(sizeof(TableChamp)))) {
-            perror("malloc");
-            exit(3);
-        }
-        strcpy(new_champ->name, current_param->firstChild->u.identifier);
-        strcpy(new_champ->type, current_param->u.identifier);
+        if (current_param->firstChild != NULL) {
+            if (NULL == (new_champ = (TableChamp *)malloc(sizeof(TableChamp)))) {
+                perror("malloc");
+                exit(3);
+            }
 
+            strcpy(type, current_param->u.identifier);
+
+            if (strcmp(type, "int") == 0) {
+                strcpy(tmp, "int");
+            } else if (strcmp(type, "char") == 0) {
+                strcpy(tmp, "char");
+            } else if (strcmp(type, "void") == 0) {
+                strcpy(tmp, "void");
+            } else {
+                strcpy(tmp, "struct ");
+                strcat(tmp, node->firstChild->u.identifier);
+            }
+
+            strcpy(new_champ->name, current_param->firstChild->u.identifier);
+            strcpy(new_champ->type, tmp);
+
+            new_champ->place = nb_param;
+            nb_param += 1;
+
+            new_champ->next = new->param;
+            new->param = new_champ;
+        }
         current_param = current_param->nextSibling;
     }
 }
@@ -212,7 +236,7 @@ void make_table_aux(Node *node, SymbolTable *table, Kind_Val kind) {
             addFunc(node, table);
             // make_table_aux(node->firstChild, table, Function);
             initialisation_Table(&node->u.symbol_tab, node->firstChild->firstChild->u.identifier, table);
-            
+
             strcpy(node->u.symbol_tab.name, node->firstChild->firstChild->u.identifier);
             make_table_aux(node->firstChild->firstChild->nextSibling, &node->u.symbol_tab, Parameter);
             make_table_aux(node->firstChild->nextSibling->firstChild, &node->u.symbol_tab, Variable);
@@ -480,151 +504,6 @@ int TestVar(Node *node, SymbolTable symbol_tab, char var[MAXNAME]) {
     return 0;
 }
 
-void SemanticErrorAux(Node *node, SymbolTable symbol_tab) {
-    char var[MAXNAME];
-
-    if (NULL == node) {
-        return;
-    }
-
-    switch (node->kind) {
-        case Corps:
-            SemanticErrorAux(node->firstChild->nextSibling, symbol_tab);  //rentre dans SuiteInstr
-            break;
-
-        case SuiteInstr:
-            for (Node *child = node->firstChild; child != NULL; child = child->nextSibling) {
-                SemanticErrorAux(child, symbol_tab);
-            }
-            break;
-
-        case Asignment:
-            printf("ident %s\n", node->firstChild->u.identifier);
-            if (node->firstChild->firstChild != NULL) {
-                reasearchType(node->firstChild, node->firstChild->firstChild, &symbol_tab, var);
-            }
-
-            else if (node->firstChild->kind == IntLiteral)
-                strcpy(var, "int");
-
-            else if (node->firstChild->kind == CharLiteral)
-                strcpy(var, "char");
-            else {
-                if (researchVar(&symbol_tab, node->firstChild->u.identifier, var) == 0) {
-                    fprintf(stderr, "Semantic Error : the variable isn't exist 1\n");
-                    exit(EXIT_FAILURE);
-                }
-            }
-
-            printf("la valeur assigné est %s\n", var);
-            TestVar(node->firstChild->nextSibling, symbol_tab, var);
-            break;
-
-        case Equals:
-        case Compare:
-        case If:
-        case While:
-        case Or:
-        case And:
-        case AddSub:
-        case DivStar:
-            SemanticErrorAux(node->firstChild, symbol_tab);
-            SemanticErrorAux(node->firstChild->nextSibling, symbol_tab);
-            break;
-
-        case Identifier:
-            printf("ident %s  seul\n", node->u.identifier);
-            if (node->firstChild != NULL) {
-                reasearchType(node, node->firstChild, &symbol_tab, var);
-            }
-
-            else {
-                if (researchVar(&symbol_tab, node->u.identifier, var) == 0) {
-                    fprintf(stderr, "Semantic Error : the variable isn't exist 1\n");
-                    exit(2);
-                }
-            }
-
-            if (strcmp(var, "char") != 0 && strcmp(var, "int") != 0) {
-                fprintf(stderr, "Semantic Error : the variable can't be affect\n");
-                exit(2);
-            }
-
-            break;
-
-        case Return:
-            if (researchValueReturn(symbol_tab.parent, symbol_tab.name, var) == 0) {
-                fprintf(stderr, "Semantic Error : the function isn't exist\n");
-                exit(2);
-            }
-
-            if (strcmp(symbol_tab.name, "main") == 0 && strcmp(var, "int") != 0) {
-                fprintf(stderr, "Semantic Error : the function main must return integer\n");
-                exit(2);
-            }
-
-            TestVar(node->firstChild, symbol_tab, var);
-            break;
-
-        case Readc:  //lit un caractere
-            if (node->firstChild->firstChild != NULL) {
-                reasearchType(node->firstChild, node->firstChild->firstChild, &symbol_tab, var);
-            }
-
-            else {
-                if (researchVar(&symbol_tab, node->firstChild->u.identifier, var) == 0) {
-                    fprintf(stderr, "Semantic Error : the variable isn't exist 1\n");
-                    exit(2);
-                }
-            }
-
-            if (strcmp(var, "char") != 0 && strcmp(var, "int") != 0) {
-                fprintf(stderr, "Semantic Error : the variable can't be affect\n");
-                exit(2);
-            }
-            break;
-
-        case Print:
-        case Else:
-            SemanticErrorAux(node->firstChild, symbol_tab);
-            break;
-
-        case Reade:  //lit un entier
-            if (node->firstChild->firstChild != NULL) {
-                reasearchType(node->firstChild, node->firstChild->firstChild, &symbol_tab, var);
-            }
-
-            else {
-                if (researchVar(&symbol_tab, node->firstChild->u.identifier, var) == 0) {
-                    fprintf(stderr, "Semantic Error : the variable isn't exist 1\n");
-                    exit(2);
-                }
-            }
-
-            if (strcmp(var, "char") == 0)
-                fprintf(stderr, "Warning : you affect char for a int\n");
-
-            if (strcmp(var, "char") != 0 && strcmp(var, "int") != 0) {
-                fprintf(stderr, "Semantic Error : the variable can't be affect\n");
-                exit(2);
-            }
-            break;
-
-        case Func:
-            for (Node *child = node->firstChild; child != NULL; child = child->nextSibling) {
-                SemanticErrorAux(child, symbol_tab);
-            }
-            break;
-
-        case IntLiteral:
-        case CharLiteral:
-        case Type:
-        case Struct:
-        default:
-            break;
-    }
-}
-
 int searchReturn(Node *node) {
     int tmp1, tmp2, tmp3;
     if (node == NULL) {
@@ -662,7 +541,9 @@ int SemanticErrorAux2(Node *node, SymbolTable *symbol_tab) {
 
     switch (node->kind) {
         case Corps:
+            printf("lila\n");
             SemanticErrorAux2(node->firstChild->nextSibling, symbol_tab);  //rentre dans SuiteInstr
+            printf("lile\n");
             break;
 
         case SuiteInstr:
@@ -685,24 +566,6 @@ int SemanticErrorAux2(Node *node, SymbolTable *symbol_tab) {
                 }
             }
 
-            // if (node->firstChild->firstChild != NULL) {
-            //     reasearchType(node->firstChild, node->firstChild->firstChild, &symbol_tab, var);
-            // }
-
-            // else if (node->firstChild->kind == IntLiteral)
-            //     strcpy(var, "int");
-
-            // else if (node->firstChild->kind == CharLiteral)
-            //     strcpy(var, "char");
-            // else {
-            //     if (researchVar(&symbol_tab, node->firstChild->u.identifier, var) == 0) {
-            //         fprintf(stderr, "Semantic Error : the variable isn't exist 1\n");
-            //         exit(EXIT_FAILURE);
-            //     }
-            // }
-
-            // printf("la valeur assigné est %s\n", var);
-            // TestVar(node->firstChild->nextSibling, *symbol_tab, var);
             break;
 
         case Equals:
@@ -758,21 +621,6 @@ int SemanticErrorAux2(Node *node, SymbolTable *symbol_tab) {
                 fprintf(stderr, "Error : unknown variable %s, line %d\n", node->u.identifier, node->lineno);
                 exit(2);
             }
-            // if (node->firstChild != NULL) {
-            //     reasearchType(node, node->firstChild, symbol_tab, var);
-            // }
-
-            // else {
-            //     if (researchVar(symbol_tab, node->u.identifier, var) == 0) {
-            //         fprintf(stderr, "Semantic Error : the variable isn't exist 1\n");
-            //         exit(2);
-            //     }
-            // }
-
-            // if (strcmp(var, "char") != 0 && strcmp(var, "int") != 0) {
-            //     fprintf(stderr, "Semantic Error : the variable can't be affect\n");
-            //     exit(2);
-            // }
 
             break;
 
@@ -780,7 +628,8 @@ int SemanticErrorAux2(Node *node, SymbolTable *symbol_tab) {
             printf("lala\n");
             checkFunc(&func, symbol_tab, symbol_tab->name);
             tmp1 = SemanticErrorAux2(node->firstChild, symbol_tab);
-            printf("%d\n", func->size);
+            printf("---%d\n", func->size);
+            printf("---%s\n", func->name);
 
             if (tmp1 != func->size) {
                 if (tmp1 == 1 && func->size == 4) {
@@ -790,17 +639,7 @@ int SemanticErrorAux2(Node *node, SymbolTable *symbol_tab) {
                     exit(2);
                 }
             }
-            // if (researchValueReturn(symbol_tab->parent, symbol_tab->name, var) == 0) {
-            //     fprintf(stderr, "Semantic Error : the function isn't exist\n");
-            //     exit(2);
-            // }
 
-            // if (strcmp(symbol_tab->name, "main") == 0 && strcmp(var, "int") != 0) {
-            //     fprintf(stderr, "Semantic Error : the function main must return integer\n");
-            //     exit(2);
-            // }
-
-            // TestVar(node->firstChild, *symbol_tab, var);
             break;
 
         case Readc:  //lit un caractere
@@ -812,21 +651,7 @@ int SemanticErrorAux2(Node *node, SymbolTable *symbol_tab) {
                 fprintf(stderr, "Error : invalid return type, expected char, line %d\n", node->lineno);
                 exit(2);
             }
-            // if (node->firstChild->firstChild != NULL) {
-            //     reasearchType(node->firstChild, node->firstChild->firstChild, symbol_tab, var);
-            // }
 
-            // else {
-            //     if (researchVar(symbol_tab, node->firstChild->u.identifier, var) == 0) {
-            //         fprintf(stderr, "Semantic Error : the variable isn't exist 1\n");
-            //         exit(2);
-            //     }
-            // }
-
-            // if (strcmp(var, "char") != 0 && strcmp(var, "int") != 0) {
-            //     fprintf(stderr, "Semantic Error : the variable can't be affect\n");
-            //     exit(2);
-            // }
             break;
 
         case Print:
@@ -841,24 +666,7 @@ int SemanticErrorAux2(Node *node, SymbolTable *symbol_tab) {
                 fprintf(stderr, "Error : invalid return type, expected char, line %d\n", node->lineno);
                 exit(2);
             }
-            // if (node->firstChild->firstChild != NULL) {
-            //     reasearchType(node->firstChild, node->firstChild->firstChild, symbol_tab, var);
-            // }
 
-            // else {
-            //     if (researchVar(symbol_tab, node->firstChild->u.identifier, var) == 0) {
-            //         fprintf(stderr, "Semantic Error : the variable isn't exist 1\n");
-            //         exit(2);
-            //     }
-            // }
-
-            // if (strcmp(var, "char") == 0)
-            //     fprintf(stderr, "Warning : you affect char for a int\n");
-
-            // if (strcmp(var, "char") != 0 && strcmp(var, "int") != 0) {
-            //     fprintf(stderr, "Semantic Error : the variable can't be affect\n");
-            //     exit(2);
-            // }
             break;
 
         case Func:
@@ -869,9 +677,6 @@ int SemanticErrorAux2(Node *node, SymbolTable *symbol_tab) {
                 exit(2);
             }
 
-            // for (Node *child = node->firstChild; child != NULL; child = child->nextSibling) {
-            //     SemanticErrorAux2(child, symbol_tab);
-            // }
             break;
 
         case IntLiteral:
@@ -886,15 +691,11 @@ int SemanticErrorAux2(Node *node, SymbolTable *symbol_tab) {
     return 0;
 }
 
-// void remplisParam(SymbolTablenode->u.symbol_tab->parent, node->u.symbol_tab){
-
-// }
-
 void readSemanticError(Node *node) {
     if (NULL == node) {
         return;
     }
-    
+
     switch (node->kind) {
         case Prog:
             if (researchMain(&(node->u.symbol_tab)) == 0) {
