@@ -309,5 +309,3 @@ void addFunc(SymbolTable *table, const char name[], char *type) {
         }
     }
 }
-
-
